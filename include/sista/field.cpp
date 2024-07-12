@@ -129,7 +129,10 @@ namespace sista {
 
     void Field::addPrintPawn(Pawn* pawn) { // Add a pawn to the matrix and print it
         addPawn(pawn); // Add the pawn to the matrix
-        this->cursor.set(pawn->getCoordinates()); // Set the cursor to the pawn's coordinates
+        rePrintPawn(pawn); // Print the pawn
+    }
+    void Field::rePrintPawn(Pawn* pawn) { // Print a pawn
+        cursor.set(pawn->getCoordinates()); // Set the cursor to the pawn's coordinates
         pawn->print(); // Print the pawn
     }
 
