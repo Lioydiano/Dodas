@@ -16,9 +16,10 @@ std::vector<Cannon*> Cannon::cannons;
 std::vector<Worker*> Worker::workers;
 std::vector<Bomber*> Bomber::bombers;
 Player* Player::player;
-Mother* Mother::mother;
+Queen* Queen::queen;
 
 std::bernoulli_distribution Zombie::distribution(ZOMBIE_MOVING_PROBABILITY);
+std::bernoulli_distribution Zombie::shootDistribution(ZOMBIE_SHOOTING_PROBABILITY);
 std::bernoulli_distribution Walker::distribution(WALKER_MOVING_PROBABILITY);
 sista::Cursor cursor;
 bool end = false;
@@ -44,7 +45,7 @@ int main() {
     );
 
     field->addPrintPawn(Player::player = new Player({10, 18}));
-    field->addPrintPawn(Mother::mother = new Mother({10, 49}));
+    field->addPrintPawn(Queen::queen = new Queen({10, 49}));
     for (unsigned short j=0; j<20; j++) {
         Wall* wall = new Wall({j, 30}, 3); // There is a vertical macrowall in the middle of the field
         Wall::walls.push_back(wall);
@@ -155,7 +156,14 @@ int main() {
                 worker->produce();
         for (auto bomber : Bomber::bombers)
             bomber->move();
-
+        for (auto zombie : Zombie::zombies)
+            if (Zombie::shootDistribution(rng))
+                zombie->shoot();
+        try {
+            Queen::queen->move();
+        } catch (std::exception& e) {
+            // Nothing to do here
+        }
         for (auto wall : Wall::walls) {
             if (wall->strength == 0) {
                 Wall::removeWall(wall);
@@ -173,18 +181,18 @@ int main() {
             Walker::walkers.push_back(walker);
             field->addPrintPawn(walker);
         }
-        Mother::mother->setSymbol('0' + Mother::mother->life);
-        field->rePrintPawn(Mother::mother);
+        Queen::queen->setSymbol('0' + Queen::queen->life);
+        field->rePrintPawn(Queen::queen);
         if (i % 10 == 0) {
             sista::clearScreen();
             field->print(border);
         }
         // Statistics
-        Mother::motherStyle.apply();
+        Queen::queenStyle.apply();
         cursor.set(8, 55);
         std::cout << "Ammonitions: " << Player::player->ammonitions << "    ";
-        // cursor.set(10, 55);
-        // std::cout << "Life: " << Mother::mother->life;
+        cursor.set(10, 55);
+        std::cout << "Life: " << Queen::queen->life;
         std::cout << std::flush;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
@@ -251,8 +259,8 @@ void Bullet::move() {
             Cannon* cannon = (Cannon*)hitten;
             // Makes the cannon fire
             cannon->fire();
-        } else if (hitten->type == Type::MOTHER) {
-            Mother* mother = (Mother*)hitten;
+        } else if (hitten->type == Type::QUEEN) {
+            Queen* mother = (Queen*)hitten;
             mother->life--;
             field->rePrintPawn(mother);
             if (mother->life == 0) {
@@ -276,6 +284,7 @@ ANSI::Settings EnemyBullet::enemyBulletStyle = {
     ANSI::Attribute::BRIGHT
 };
 EnemyBullet::EnemyBullet(sista::Coordinates coordinates, Direction direction, unsigned short speed) : Entity(directionSymbol[direction], coordinates, enemyBulletStyle, Type::BULLET), direction(direction), speed(speed) {}
+EnemyBullet::EnemyBullet(sista::Coordinates coordinates, Direction direction) : Entity(directionSymbol[direction], coordinates, enemyBulletStyle, Type::BULLET), direction(direction), speed(1) {}
 EnemyBullet::EnemyBullet() : Entity(' ', {0, 0}, enemyBulletStyle, Type::ENEMYBULLET), direction(Direction::UP), speed(1) {}
 void EnemyBullet::removeEnemyBullet(EnemyBullet* enemyBullet) {
     EnemyBullet::enemyBullets.erase(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), enemyBullet));
@@ -302,6 +311,7 @@ void EnemyBullet::move() {
                 wall->setSymbol('@'); // Change the symbol to '@' to indicate that the wall was destroyed
                 field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
             }
+            EnemyBullet::removeEnemyBullet(this);
         } else if (hitten->type == Type::BULLET) {
             Bullet::removeBullet((Bullet*)hitten);
             EnemyBullet::removeEnemyBullet(this);
@@ -314,14 +324,9 @@ void EnemyBullet::move() {
         } else if (hitten->type == Type::CANNON) { // The cannon is destroyed by the enemy bullet
             EnemyBullet::removeEnemyBullet(this);
             Cannon::removeCannon((Cannon*)hitten);
-        } else if (hitten->type == Type::MOTHER) {
-            Mother* mother = (Mother*)hitten;
-            mother->life--;
-            field->rePrintPawn(mother);
-            if (mother->life == 0) {
-                // win();
-                end = true;
-            }
+        } else if (hitten->type == Type::WORKER) {
+            Worker::removeWorker((Worker*)hitten);
+            EnemyBullet::removeEnemyBullet(this);
         }
     }
 }
@@ -444,14 +449,41 @@ void Zombie::move() { // Zombies mostly move vertically and stay defending the m
         Zombie::removeZombie(this);
     }
 }
+void Zombie::shoot() {
+    sista::Coordinates spawn = coordinates + directionMap[Direction::LEFT];
+    if (!field->isFree(spawn)) {
+        return; // No complications, if you can't spawn something there just pretend the command was never given
+    }
+    EnemyBullet* newbullet = new EnemyBullet(spawn, Direction::LEFT);
+    EnemyBullet::enemyBullets.push_back(newbullet);
+    field->addPrintPawn(newbullet);
+}
 
-ANSI::Settings Mother::motherStyle = {
+ANSI::Settings Queen::queenStyle = {
     ANSI::ForegroundColor::F_BLACK,
     ANSI::BackgroundColor::B_RED,
     ANSI::Attribute::BRIGHT
 };
-Mother::Mother(sista::Coordinates coordinates) : Entity('9', coordinates, motherStyle, Type::MOTHER), life(9) {}
-Mother::Mother() : Entity('9', {0, 0}, motherStyle, Type::MOTHER), life(9) {}
+Queen::Queen(sista::Coordinates coordinates) : Entity('9', coordinates, queenStyle, Type::QUEEN), life(9) {}
+Queen::Queen() : Entity('9', {0, 0}, queenStyle, Type::QUEEN), life(9) {}
+void Queen::move() {
+    // Queen's movement is only vertical and it is always near the center of its side {10, 49}
+    if (rand() % 10 == 0) {
+        if (coordinates.y < 6) return;
+        sista::Coordinates nextCoordinates = coordinates + directionMap[Direction::UP];
+        if (!field->isOutOfBounds(nextCoordinates) && field->isFree(nextCoordinates)) {
+            field->movePawn(this, nextCoordinates);
+            coordinates = nextCoordinates;
+        }
+    } else if (rand() % 10 == 1) {
+        if (coordinates.y > 14) return;
+        sista::Coordinates nextCoordinates = coordinates + directionMap[Direction::DOWN];
+        if (!field->isOutOfBounds(nextCoordinates) && field->isFree(nextCoordinates)) {
+            field->movePawn(this, nextCoordinates);
+            coordinates = nextCoordinates;
+        }
+    }
+}
 
 ANSI::Settings Wall::wallStyle = {
     ANSI::ForegroundColor::F_YELLOW,
@@ -516,8 +548,8 @@ void Mine::explode() {
                 mine->triggered = true;
             } else if (neighbor->type == Type::CANNON) {
                 Cannon::removeCannon((Cannon*)neighbor);
-            } else if (neighbor->type == Type::MOTHER) {
-                Mother* mother = (Mother*)neighbor;
+            } else if (neighbor->type == Type::QUEEN) {
+                Queen* mother = (Queen*)neighbor;
                 mother->life--;
                 field->rePrintPawn(mother);
                 if (mother->life == 0) {
@@ -627,8 +659,8 @@ void Bomber::move() {
         mine->triggered = true;
     } else if (neighbor->type == Type::WALKER || neighbor->type == Type::ZOMBIE) {
         explode();
-    } else if (neighbor->type == Type::MOTHER) {
-        Mother* mother = (Mother*)neighbor;
+    } else if (neighbor->type == Type::QUEEN) {
+        Queen* mother = (Queen*)neighbor;
         mother->life--;
         field->rePrintPawn(mother);
         if (mother->life == 0) {
@@ -660,8 +692,8 @@ void Bomber::explode() {
                 mine->triggered = true;
             } else if (neighbor->type == Type::CANNON) {
                 Cannon::removeCannon((Cannon*)neighbor);
-            } else if (neighbor->type == Type::MOTHER) {
-                Mother* mother = (Mother*)neighbor;
+            } else if (neighbor->type == Type::QUEEN) {
+                Queen* mother = (Queen*)neighbor;
                 mother->life--;
                 field->rePrintPawn(mother);
                 if (mother->life == 0) {
@@ -701,6 +733,7 @@ void Walker::move() { // Walkers mostly move horizontally because they only rare
     if (field->isOutOfBounds(nextCoordinates)) {
         if (coordinates.x == 0) { // Touchdown, the player loses all the ammonitions
             Player::player->ammonitions = 0;
+            this->explode();
             Walker::removeWalker(this);
             return;
         } else { // Touched bottom limit, we can use pacman effect which clearly can be used by walkers
@@ -739,5 +772,43 @@ void Walker::move() { // Walkers mostly move horizontally because they only rare
         Cannon::removeCannon((Cannon*)neighbor);
     } else if (neighbor->type == Type::WORKER) {
         Worker::removeWorker((Worker*)neighbor);
+    }
+}
+void Walker::explode() {
+    for (int j=-1; j<=1; j++) {
+        for (int i=-1; i<=1; i++) {
+            if (i == 0 && j == 0) continue;
+            sista::Coordinates nextCoordinates = coordinates + sista::Coordinates(j, i);
+            if (field->isOutOfBounds(nextCoordinates)) {
+                continue;
+            }
+            Entity* neighbor = (Entity*)field->getPawn(nextCoordinates);
+            if (neighbor == nullptr) {
+                continue;
+            } else if (neighbor->type == Type::ZOMBIE) {
+                Zombie::removeZombie((Zombie*)neighbor);
+            } else if (neighbor->type == Type::WALKER) {
+                Walker::removeWalker((Walker*)neighbor);
+            } else if (neighbor->type == Type::ENEMYBULLET) {
+                EnemyBullet::removeEnemyBullet((EnemyBullet*)neighbor);
+            } else if (neighbor->type == Type::MINE) {
+                Mine* mine = (Mine*)neighbor;
+                mine->triggered = true;
+            } else if (neighbor->type == Type::CANNON) {
+                Cannon::removeCannon((Cannon*)neighbor);
+            } else if (neighbor->type == Type::WALL) {
+                Wall* wall = (Wall*)neighbor;
+                int damage = rand() % 3 + 1;
+                if (wall->strength <= damage) {
+                    wall->strength = 0;
+                    wall->setSymbol('@'); // Change the symbol to '@' to indicate that the wall was destroyed
+                    field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
+                } else {
+                    wall->strength -= damage;
+                }
+            } else if (neighbor->type == Type::WORKER) {
+                Worker::removeWorker((Worker*)neighbor);
+            }
+        }
     }
 }

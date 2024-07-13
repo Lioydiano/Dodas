@@ -9,6 +9,7 @@
 #define WORKER_PRODUCTION_PROBABILITY 1.0/150
 #define WORKER_PRODUCTION_PERIOD 150
 #define ZOMBIE_MOVING_PROBABILITY 0.2
+#define ZOMBIE_SHOOTING_PROBABILITY 0.01
 #define WALKER_MOVING_PROBABILITY 0.1
 
 #define START_AMMONITION 10
@@ -26,7 +27,7 @@ enum Type {
     ZOMBIE,
     WALKER,
     ENEMYBULLET,
-    MOTHER
+    QUEEN
 };
 
 
@@ -67,9 +68,10 @@ public:
     static ANSI::Settings enemyBulletStyle;
     static std::vector<EnemyBullet*> enemyBullets;
     Direction direction;
-    unsigned short speed; // The bullet moves speed cells per frame
+    unsigned short speed = 1; // The bullet moves speed cells per frame
 
     EnemyBullet();
+    EnemyBullet(sista::Coordinates, Direction);
     EnemyBullet(sista::Coordinates, Direction, unsigned short);
 
     void move();
@@ -99,6 +101,7 @@ public:
     static ANSI::Settings zombieStyle;
     static std::vector<Zombie*> zombies;
     static std::bernoulli_distribution distribution; // The zombie moves a cell every zombieSpeed frames, on average
+    static std::bernoulli_distribution shootDistribution; // The zombie shoots a bullet every zombieShootingRate frames, on average
 
     Zombie();
     Zombie(sista::Coordinates);
@@ -106,20 +109,20 @@ public:
     void move(); // They should move mostly vertically
     // void move(Direction);
     void shoot(); // They should only shoot horizontally to the left
-    void shoot(Direction);
+    // void shoot(Direction);
 
     static void removeZombie(Zombie*);
 };
 
 
-class Mother : public Entity {
+class Queen : public Entity {
 public:
-    static ANSI::Settings motherStyle;
-    static Mother* mother;
+    static ANSI::Settings queenStyle;
+    static Queen* queen;
     int life; // The mother has a life score (when it reaches 0, the game is over) which regenerates over time
 
-    Mother();
-    Mother(sista::Coordinates);
+    Queen();
+    Queen(sista::Coordinates);
 
     void move(); // Only moves vertically in a small range, I want it to always be near the center
     // void shoot(); // Only shoots horizontally to the left
