@@ -6,8 +6,10 @@
 
 #define CANNON_FIRE_PROBABILITY 0.025
 #define CANNON_FIRE_PERIOD 40
-#define WORKER_PRODUCTION_PROBABILITY 0.05
-#define WORKER_PRODUCTION_PERIOD 20
+#define WORKER_PRODUCTION_PROBABILITY 1.0/150
+#define WORKER_PRODUCTION_PERIOD 150
+#define ZOMBIE_MOVING_PROBABILITY 0.2
+#define WALKER_MOVING_PROBABILITY 0.1
 
 #define START_AMMONITION 10
 
@@ -96,12 +98,13 @@ class Zombie : public Entity {
 public:
     static ANSI::Settings zombieStyle;
     static std::vector<Zombie*> zombies;
+    static std::bernoulli_distribution distribution; // The zombie moves a cell every zombieSpeed frames, on average
 
     Zombie();
     Zombie(sista::Coordinates);
 
     void move(); // They should move mostly vertically
-    void move(Direction);
+    // void move(Direction);
     void shoot(); // They should only shoot horizontally to the left
     void shoot(Direction);
 
@@ -118,9 +121,9 @@ public:
     Mother();
     Mother(sista::Coordinates);
 
-    void move(); // Only moves vertically in a small range, I want it to always be in the center
-    void shoot(); // Only shoots horizontally to the left
-    void spawnZombie(); // Spawns a zombie at a random position (but I would like the zombies to be born close to the mother)
+    void move(); // Only moves vertically in a small range, I want it to always be near the center
+    // void shoot(); // Only shoots horizontally to the left
+    // void spawnZombie(); // Spawns a zombie at a random position (but I would like the zombies to be born close to the mother)
 };
 
 
@@ -132,6 +135,8 @@ public:
 
     Wall();
     Wall(sista::Coordinates, short int);
+
+    static void removeWall(Wall*);
 };
 
 
@@ -139,7 +144,8 @@ class Mine : public Entity {
 public:
     static ANSI::Settings mineStyle;
     static std::vector<Mine*> mines;
-    bool triggered;
+    bool triggered = false;
+    bool alive = true;
 
     Mine();
     Mine(sista::Coordinates);
@@ -147,6 +153,8 @@ public:
     bool checkTrigger();
     void trigger();
     void explode();
+
+    static void removeMine(Mine*);
 };
 
 
@@ -160,6 +168,8 @@ public:
     Cannon(sista::Coordinates, unsigned short);
 
     void fire();
+
+    static void removeCannon(Cannon*);
 };
 
 
@@ -174,6 +184,8 @@ public:
     Worker(sista::Coordinates, unsigned short);
 
     void produce();
+
+    static void removeWorker(Worker*);
 };
 
 
@@ -187,16 +199,21 @@ public:
 
     void move();
     void explode();
+
+    static void removeBomber(Bomber*);
 };
 
 class Walker : public Entity { // Walkers go towards the left side of the screen and can kill the player on touch, and they explode as bombers when they meet a worker
 public:
     static ANSI::Settings walkerStyle;
     static std::vector<Walker*> walkers;
+    static std::bernoulli_distribution distribution; // The walker moves a cell every walkerSpeed frames, on average
 
     Walker();
     Walker(sista::Coordinates);
 
     void move();
     void explode();
+
+    static void removeWalker(Walker*);
 };
