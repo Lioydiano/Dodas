@@ -252,6 +252,7 @@ void Bullet::move() {
             Bullet::removeBullet((Bullet*)hitten);
         } else if (hitten->type == Type::ENEMYBULLET) {
             EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten);
+            return;
         } else if (hitten->type == Type::MINE) {
             Mine* mine = (Mine*)hitten;
             mine->triggered = true;
@@ -311,23 +312,23 @@ void EnemyBullet::move() {
                 wall->setSymbol('@'); // Change the symbol to '@' to indicate that the wall was destroyed
                 field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
             }
-            EnemyBullet::removeEnemyBullet(this);
         } else if (hitten->type == Type::BULLET) {
             Bullet::removeBullet((Bullet*)hitten);
-            EnemyBullet::removeEnemyBullet(this);
-        } else if (hitten->type == Type::ZOMBIE || hitten->type == Type::WALKER || hitten->type == Type::ENEMYBULLET) {
-            EnemyBullet::removeEnemyBullet(this);
+        } else if (hitten->type == Type::ZOMBIE || hitten->type == Type::WALKER) {
+            // No friendly fire
+        } if (hitten->type == Type::ENEMYBULLET) {
+            EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten);
         } else if (hitten->type == Type::MINE) {
             Mine* mine = (Mine*)hitten;
             mine->triggered = true;
-            EnemyBullet::removeEnemyBullet(this);
         } else if (hitten->type == Type::CANNON) { // The cannon is destroyed by the enemy bullet
-            EnemyBullet::removeEnemyBullet(this);
             Cannon::removeCannon((Cannon*)hitten);
         } else if (hitten->type == Type::WORKER) {
             Worker::removeWorker((Worker*)hitten);
-            EnemyBullet::removeEnemyBullet(this);
+        } else if (hitten->type == Type::BOMBER) {
+            Bomber::removeBomber((Bomber*)hitten);
         }
+        EnemyBullet::removeEnemyBullet(this);
     }
 }
 
