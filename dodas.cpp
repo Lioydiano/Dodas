@@ -22,6 +22,7 @@ std::bernoulli_distribution Zombie::distribution(ZOMBIE_MOVING_PROBABILITY);
 std::bernoulli_distribution Zombie::shootDistribution(ZOMBIE_SHOOTING_PROBABILITY);
 std::bernoulli_distribution Walker::distribution(WALKER_MOVING_PROBABILITY);
 sista::Cursor cursor;
+bool pause_ = false;
 bool end = false;
 
 int main() {
@@ -70,8 +71,8 @@ int main() {
     field->print(border);
     // std::this_thread::sleep_for(std::chrono::milliseconds(2000));    
     std::thread th = std::thread([&]() {
-        char input = 'Q';
-        while (input != 'q') {
+        char input = '_';
+        while (input != 'Q' /*&& input != 'q'*/) {
             if (end) return;
             #if defined(_WIN32) or defined(__linux__)
                 input = getch();
@@ -122,7 +123,10 @@ int main() {
             case '=': case '0':
                 Player::player->weapon = Type::WALL;
                 break;
-            case 'q':
+            case '.':
+                pause_ = !pause_;
+                break;
+            case 'Q': /* case 'q': */
                 end = true;
                 return;
             default:
@@ -131,6 +135,10 @@ int main() {
         }
     });
     for (unsigned i=0; !end; i++) {
+        if (pause_) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned i=0; i<Bullet::bullets.size(); i++) {
             if (i >= Bullet::bullets.size()) break;
@@ -223,6 +231,30 @@ int main() {
         std::cout << "Life: " << Queen::queen->life;
         std::cout << std::flush;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        // At the end of the frame we check if in the Field there is any Entity which isn't in any of the lists
+        std::vector<sista::Coordinates> coordinates;
+        for (unsigned short j=0; j<20; j++) {
+            for (unsigned short i=0; i<50; i++) {
+                Entity* pawn = (Entity*)field->getPawn(j, i);
+                if (pawn == nullptr) continue;
+                if (std::find(Bullet::bullets.begin(), Bullet::bullets.end(), pawn) == Bullet::bullets.end() &&
+                    std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), pawn) == EnemyBullet::enemyBullets.end() &&
+                    std::find(Zombie::zombies.begin(), Zombie::zombies.end(), pawn) == Zombie::zombies.end() &&
+                    std::find(Walker::walkers.begin(), Walker::walkers.end(), pawn) == Walker::walkers.end() &&
+                    std::find(Wall::walls.begin(), Wall::walls.end(), pawn) == Wall::walls.end() &&
+                    std::find(Mine::mines.begin(), Mine::mines.end(), pawn) == Mine::mines.end() &&
+                    std::find(Cannon::cannons.begin(), Cannon::cannons.end(), pawn) == Cannon::cannons.end() &&
+                    std::find(Worker::workers.begin(), Worker::workers.end(), pawn) == Worker::workers.end() &&
+                    std::find(Bomber::bombers.begin(), Bomber::bombers.end(), pawn) == Bomber::bombers.end() &&
+                    pawn != Player::player && pawn != Queen::queen) {
+                    coordinates.push_back(pawn->getCoordinates());
+                }
+            }
+        }
+        for (auto coord : coordinates) {
+            field->erasePawn(coord);
+        }
     }
     th.join();
     cursor.set(52, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
@@ -267,7 +299,7 @@ void Bullet::move() {
         return;
     } else if (field->isFree(nextCoordinates)) {
         field->movePawn(this, nextCoordinates);
-        // coordinates = nextCoordinates;
+        coordinates = nextCoordinates;
         return;
     } else { // Something was hitten
         Entity* hitten = (Entity*)field->getPawn(nextCoordinates);
@@ -285,7 +317,7 @@ void Bullet::move() {
         } else if (hitten->type == Type::BULLET) {
             Bullet::removeBullet((Bullet*)hitten);
         } else if (hitten->type == Type::ENEMYBULLET) {
-            field->swapTwoPawns(this, hitten);
+            // field->swapTwoPawns(this, hitten);
             // EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten); // Commenting this line because it's segfaulting I believe
             // field->erasePawn((EnemyBullet*)hitten);
             // int index = std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), (EnemyBullet*)hitten) - EnemyBullet::enemyBullets.begin();
@@ -333,7 +365,7 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
         return;
     } else if (field->isFree(nextCoordinates)) {
         field->movePawn(this, nextCoordinates);
-        // coordinates = nextCoordinates;
+        coordinates = nextCoordinates;
         return;
     } else { // Something was hitten
         Entity* hitten = (Entity*)field->getPawn(nextCoordinates);
@@ -353,7 +385,7 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
             // field->erasePawn((Bullet*)hitten);
             // int index = std::find(Bullet::bullets.begin(), Bullet::bullets.end(), (Bullet*)hitten) - Bullet::bullets.begin();
             // Bullet::bullets[index] = nullptr;
-            // EnemyBullet::removeEnemyBullet(this);
+            EnemyBullet::removeEnemyBullet(this);
             return;
         } else if (hitten->type == Type::ZOMBIE || hitten->type == Type::WALKER) {
             // No friendly fire
