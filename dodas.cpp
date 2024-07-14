@@ -119,7 +119,7 @@ int main() {
             case 'W':
                 Player::player->weapon = Type::WORKER;
                 break;
-            case '=':
+            case '=': case '0':
                 Player::player->weapon = Type::WALL;
                 break;
             case 'q':
@@ -138,6 +138,7 @@ int main() {
             if (bullet == nullptr) continue;
             bullet->move();
         }
+        // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         for (unsigned i=0; i<EnemyBullet::enemyBullets.size(); i++) {
             if (i >= EnemyBullet::enemyBullets.size()) break;
@@ -145,6 +146,7 @@ int main() {
             if (enemyBullet == nullptr) continue;
             enemyBullet->move();
         }
+        // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         // removeNullptrs((std::vector<Entity*>&)Zombie::zombies);
         for (auto zombie : Zombie::zombies)
             if (Zombie::distribution(rng))
@@ -265,7 +267,7 @@ void Bullet::move() {
         return;
     } else if (field->isFree(nextCoordinates)) {
         field->movePawn(this, nextCoordinates);
-        coordinates = nextCoordinates;
+        // coordinates = nextCoordinates;
         return;
     } else { // Something was hitten
         Entity* hitten = (Entity*)field->getPawn(nextCoordinates);
@@ -285,6 +287,11 @@ void Bullet::move() {
         } else if (hitten->type == Type::ENEMYBULLET) {
             field->swapTwoPawns(this, hitten);
             // EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten); // Commenting this line because it's segfaulting I believe
+            // field->erasePawn((EnemyBullet*)hitten);
+            // int index = std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), (EnemyBullet*)hitten) - EnemyBullet::enemyBullets.begin();
+            // EnemyBullet::enemyBullets[index] = nullptr;
+            // Bullet::removeBullet(this);
+            return;
         } else if (hitten->type == Type::MINE) {
             Mine* mine = (Mine*)hitten;
             mine->triggered = true;
@@ -326,7 +333,8 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
         return;
     } else if (field->isFree(nextCoordinates)) {
         field->movePawn(this, nextCoordinates);
-        coordinates = nextCoordinates;
+        // coordinates = nextCoordinates;
+        return;
     } else { // Something was hitten
         Entity* hitten = (Entity*)field->getPawn(nextCoordinates);
         if (hitten->type == Type::PLAYER) {
@@ -342,6 +350,11 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
         } else if (hitten->type == Type::BULLET) {
             field->swapTwoPawns(this, hitten);
             // Bullet::removeBullet((Bullet*)hitten); // Commenting this line because it's segfaulting I believe
+            // field->erasePawn((Bullet*)hitten);
+            // int index = std::find(Bullet::bullets.begin(), Bullet::bullets.end(), (Bullet*)hitten) - Bullet::bullets.begin();
+            // Bullet::bullets[index] = nullptr;
+            // EnemyBullet::removeEnemyBullet(this);
+            return;
         } else if (hitten->type == Type::ZOMBIE || hitten->type == Type::WALKER) {
             // No friendly fire
         } if (hitten->type == Type::ENEMYBULLET) {
@@ -460,6 +473,10 @@ void Zombie::move() { // Zombies mostly move vertically and stay defending the m
     if (Player::player->getCoordinates().y == coordinates.y) {
         // Player.x is always < Zombie.x, so no need to check that
         nextCoordinates = coordinates + directionMap[Direction::LEFT];
+        // If the Zombie is too left, it will move right
+        if (coordinates.x < 30) {
+            nextCoordinates = coordinates + directionMap[Direction::RIGHT];
+        }
     } else {
         if (rand() % 2 == 0) {
             nextCoordinates = coordinates + directionMap[Direction::DOWN];
@@ -624,7 +641,7 @@ void Cannon::fire() {
 ANSI::Settings Worker::workerStyle = {
     ANSI::ForegroundColor::F_YELLOW,
     ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::BLINK
+    ANSI::Attribute::UNDERSCORE
 };
 void Worker::removeWorker(Worker* worker) {
     Worker::workers.erase(std::find(Worker::workers.begin(), Worker::workers.end(), worker));
