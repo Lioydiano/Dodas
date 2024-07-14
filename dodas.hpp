@@ -220,3 +220,5 @@ public:
 
     static void removeWalker(Walker*);
 };
+
+void removeNullptrs(std::vector<Entity*>&);

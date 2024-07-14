@@ -36,6 +36,7 @@ int main() {
     #endif
     sista::SwappableField field_(50, 20);
     field = &field_;
+    field->clear();
     sista::Border border(
         '#', {
             ANSI::ForegroundColor::F_WHITE,
@@ -67,7 +68,7 @@ int main() {
         }
     }
     field->print(border);
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));    
     std::thread th = std::thread([&]() {
         char input = 'Q';
         while (input != 'q') {
@@ -130,45 +131,58 @@ int main() {
         }
     });
     for (unsigned i=0; !end; i++) {
+        // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned i=0; i<Bullet::bullets.size(); i++) {
             if (i >= Bullet::bullets.size()) break;
             Bullet* bullet = Bullet::bullets[i];
+            if (bullet == nullptr) continue;
             bullet->move();
         }
+        // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         for (unsigned i=0; i<EnemyBullet::enemyBullets.size(); i++) {
             if (i >= EnemyBullet::enemyBullets.size()) break;
             EnemyBullet* enemyBullet = EnemyBullet::enemyBullets[i];
+            if (enemyBullet == nullptr) continue;
             enemyBullet->move();
         }
+        // removeNullptrs((std::vector<Entity*>&)Zombie::zombies);
         for (auto zombie : Zombie::zombies)
             if (Zombie::distribution(rng))
                 zombie->move();
-        for (auto walker : Walker::walkers)
-            if (Walker::distribution(rng))
-                walker->move();
-        for (auto mine : Mine::mines)
-            mine->checkTrigger();
-        for (auto cannon : Cannon::cannons)
-            if (Cannon::distribution(rng))
-                cannon->fire();
-        for (auto worker : Worker::workers)
-            if (worker->distribution(rng))
-                worker->produce();
-        for (auto bomber : Bomber::bombers)
-            bomber->move();
+        // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
         for (auto zombie : Zombie::zombies)
             if (Zombie::shootDistribution(rng))
                 zombie->shoot();
+        // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
+        for (auto walker : Walker::walkers)
+            if (Walker::distribution(rng))
+                walker->move();
+        // removeNullptrs((std::vector<Entity*>&)Mine::mines);
+        for (auto mine : Mine::mines)
+            mine->checkTrigger();
+        // removeNullptrs((std::vector<Entity*>&)Cannon::cannons);
+        for (auto cannon : Cannon::cannons)
+            if (Cannon::distribution(rng))
+                cannon->fire();
+        // removeNullptrs((std::vector<Entity*>&)Worker::workers);
+        for (auto worker : Worker::workers)
+            if (worker->distribution(rng))
+                worker->produce();
+        // removeNullptrs((std::vector<Entity*>&)Bomber::bombers);
+        for (auto bomber : Bomber::bombers)
+            bomber->move();
         try {
             Queen::queen->move();
         } catch (std::exception& e) {
             // Nothing to do here
         }
+        // removeNullptrs((std::vector<Entity*>&)Wall::walls);
         for (auto wall : Wall::walls) {
             if (wall->strength == 0) {
                 Wall::removeWall(wall);
             }
         }
+        // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned i=0; i<Mine::mines.size(); i++) {
             if (i >= Mine::mines.size()) break;
             if (Mine::mines[i]->triggered) {
@@ -176,10 +190,22 @@ int main() {
                 Mine::removeMine(Mine::mines[i]);
             }
         }
+
         if (i % 100 == 0) {
-            Walker* walker = new Walker({(unsigned short)(rand() % 20), 49});
-            Walker::walkers.push_back(walker);
-            field->addPrintPawn(walker);
+            unsigned short y = rand() % 20;
+            if (Queen::queen->getCoordinates().y != y) {
+                Walker* walker = new Walker({y, 49});
+                Walker::walkers.push_back(walker);
+                field->addPrintPawn(walker);
+            }
+        }
+        if (i % 200 == 0) {
+            unsigned short y = rand() % 20;
+            if (Queen::queen->getCoordinates().y != y) {
+                Zombie* zombie = new Zombie({y, 49});
+                Zombie::zombies.push_back(zombie);
+                field->addPrintPawn(zombie);
+            }
         }
         Queen::queen->setSymbol('0' + Queen::queen->life);
         field->rePrintPawn(Queen::queen);
@@ -224,6 +250,11 @@ ANSI::Settings Bullet::bulletStyle = {
     ANSI::BackgroundColor::B_BLACK,
     ANSI::Attribute::BRIGHT
 };
+void Bullet::removeBullet(Bullet* bullet) {
+    Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
+    field->erasePawn(bullet);
+    // delete bullet;
+}
 Bullet::Bullet() : Entity(' ', {0, 0}, bulletStyle, Type::BULLET), direction(Direction::RIGHT), speed(1) {}
 Bullet::Bullet(sista::Coordinates coordinates, Direction direction) : Entity(directionSymbol[direction], coordinates, bulletStyle, Type::BULLET), direction(direction), speed(1) {}
 Bullet::Bullet(sista::Coordinates coordinates, Direction direction, unsigned short speed) : Entity(directionSymbol[direction], coordinates, bulletStyle, Type::BULLET), direction(direction), speed(speed) {}
@@ -235,6 +266,7 @@ void Bullet::move() {
     } else if (field->isFree(nextCoordinates)) {
         field->movePawn(this, nextCoordinates);
         coordinates = nextCoordinates;
+        return;
     } else { // Something was hitten
         Entity* hitten = (Entity*)field->getPawn(nextCoordinates);
         if (hitten->type == Type::WALL) {
@@ -251,8 +283,8 @@ void Bullet::move() {
         } else if (hitten->type == Type::BULLET) {
             Bullet::removeBullet((Bullet*)hitten);
         } else if (hitten->type == Type::ENEMYBULLET) {
-            EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten);
-            return;
+            field->swapTwoPawns(this, hitten);
+            // EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten); // Commenting this line because it's segfaulting I believe
         } else if (hitten->type == Type::MINE) {
             Mine* mine = (Mine*)hitten;
             mine->triggered = true;
@@ -272,11 +304,6 @@ void Bullet::move() {
         Bullet::removeBullet(this);
     }
 }
-void Bullet::removeBullet(Bullet* bullet) {
-    Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
-    field->erasePawn(bullet);
-    delete bullet;
-}
 
 
 ANSI::Settings EnemyBullet::enemyBulletStyle = {
@@ -290,9 +317,9 @@ EnemyBullet::EnemyBullet() : Entity(' ', {0, 0}, enemyBulletStyle, Type::ENEMYBU
 void EnemyBullet::removeEnemyBullet(EnemyBullet* enemyBullet) {
     EnemyBullet::enemyBullets.erase(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), enemyBullet));
     field->erasePawn(enemyBullet);
-    delete enemyBullet;
+    // delete enemyBullet;
 }
-void EnemyBullet::move() {
+void EnemyBullet::move() { // Pretty sure there's a segfault here
     sista::Coordinates nextCoordinates = coordinates + directionMap[direction]*speed;
     if (field->isOutOfBounds(nextCoordinates)) {
         EnemyBullet::removeEnemyBullet(this);
@@ -313,7 +340,8 @@ void EnemyBullet::move() {
                 field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
             }
         } else if (hitten->type == Type::BULLET) {
-            Bullet::removeBullet((Bullet*)hitten);
+            field->swapTwoPawns(this, hitten);
+            // Bullet::removeBullet((Bullet*)hitten); // Commenting this line because it's segfaulting I believe
         } else if (hitten->type == Type::ZOMBIE || hitten->type == Type::WALKER) {
             // No friendly fire
         } if (hitten->type == Type::ENEMYBULLET) {
@@ -428,26 +456,20 @@ Zombie::Zombie(sista::Coordinates coordinates) : Entity('Z', coordinates, zombie
 Zombie::Zombie() : Entity('Z', {0, 0}, zombieStyle, Type::ZOMBIE) {}
 void Zombie::move() { // Zombies mostly move vertically and stay defending the mother
     sista::Coordinates nextCoordinates;
-    // The zombie will move towards the player if it is in the same row
-    if (coordinates.y == Player::player->getCoordinates().y && coordinates.x > 30) {
+    // The zombie may move towards the player if it's in the same row, but it may also move the other way
+    if (Player::player->getCoordinates().y == coordinates.y) {
+        // Player.x is always < Zombie.x, so no need to check that
         nextCoordinates = coordinates + directionMap[Direction::LEFT];
     } else {
-        if (coordinates.y < Player::player->getCoordinates().y) {
+        if (rand() % 2 == 0) {
             nextCoordinates = coordinates + directionMap[Direction::DOWN];
-        } else if (coordinates.y >= Player::player->getCoordinates().y) {
+        } else {
             nextCoordinates = coordinates + directionMap[Direction::UP];
         }
     }
-    Entity* neighbor = (Entity*)field->getPawn(nextCoordinates);
-    if (neighbor == nullptr) {
-        field->movePawn((Pawn*)this, nextCoordinates);
+    if (field->isFree(nextCoordinates)) {
+        field->movePawn(this, nextCoordinates);
         coordinates = nextCoordinates;
-    } else if (neighbor->type == Type::PLAYER) {
-        // lose();
-        end = true;
-    } else if (neighbor->type == Type::BULLET) {
-        Bullet::removeBullet((Bullet*)neighbor);
-        Zombie::removeZombie(this);
     }
 }
 void Zombie::shoot() {
@@ -472,14 +494,14 @@ void Queen::move() {
     if (rand() % 10 == 0) {
         if (coordinates.y < 6) return;
         sista::Coordinates nextCoordinates = coordinates + directionMap[Direction::UP];
-        if (!field->isOutOfBounds(nextCoordinates) && field->isFree(nextCoordinates)) {
+        if (field->isFree(nextCoordinates)) {
             field->movePawn(this, nextCoordinates);
             coordinates = nextCoordinates;
         }
     } else if (rand() % 10 == 1) {
         if (coordinates.y > 14) return;
         sista::Coordinates nextCoordinates = coordinates + directionMap[Direction::DOWN];
-        if (!field->isOutOfBounds(nextCoordinates) && field->isFree(nextCoordinates)) {
+        if (field->isFree(nextCoordinates)) {
             field->movePawn(this, nextCoordinates);
             coordinates = nextCoordinates;
         }
@@ -810,6 +832,15 @@ void Walker::explode() {
             } else if (neighbor->type == Type::WORKER) {
                 Worker::removeWorker((Worker*)neighbor);
             }
+        }
+    }
+}
+
+void removeNullptrs(std::vector<Entity*>& entities) {
+    for (unsigned i=0; i<entities.size(); i++) {
+        if (entities[i] == nullptr) {
+            entities.erase(entities.begin() + i);
+            i--;
         }
     }
 }
