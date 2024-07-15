@@ -1,5 +1,6 @@
 #include "cross_platform.hpp"
 #include "dodas.hpp"
+#include <fstream>
 #include <thread>
 #include <chrono>
 
@@ -144,7 +145,18 @@ int main() {
             if (i >= Bullet::bullets.size()) break;
             Bullet* bullet = Bullet::bullets[i];
             if (bullet == nullptr) continue;
+            if (bullet->collided) continue;
             bullet->move();
+        }
+        for (auto enemyBullet : EnemyBullet::enemyBullets) {
+            if (enemyBullet->collided) {
+                EnemyBullet::removeEnemyBullet(enemyBullet);
+            }
+        }
+        for (auto bullet : Bullet::bullets) {
+            if (bullet->collided) {
+                Bullet::removeBullet(bullet);
+            }
         }
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
@@ -152,13 +164,25 @@ int main() {
             if (i >= EnemyBullet::enemyBullets.size()) break;
             EnemyBullet* enemyBullet = EnemyBullet::enemyBullets[i];
             if (enemyBullet == nullptr) continue;
+            if (enemyBullet->collided) continue;
             enemyBullet->move();
+        }
+        for (auto enemyBullet : EnemyBullet::enemyBullets) {
+            if (enemyBullet->collided) {
+                EnemyBullet::removeEnemyBullet(enemyBullet);
+            }
+        }
+        for (auto bullet : Bullet::bullets) {
+            if (bullet->collided) {
+                Bullet::removeBullet(bullet);
+            }
         }
         // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         // removeNullptrs((std::vector<Entity*>&)Zombie::zombies);
-        for (auto zombie : Zombie::zombies)
+        for (auto zombie : Zombie::zombies) {
             if (Zombie::distribution(rng))
                 zombie->move();
+        }
         // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
         for (auto zombie : Zombie::zombies)
             if (Zombie::shootDistribution(rng))
@@ -315,16 +339,13 @@ void Bullet::move() {
         } else if (hitten->type == Type::WALKER) {
             Walker::removeWalker((Walker*)hitten);
         } else if (hitten->type == Type::BULLET) {
-            Bullet::removeBullet((Bullet*)hitten);
+            ((Bullet*)hitten)->collided = true;
+            // Bullet::removeBullet((Bullet*)hitten);
+            return;
         } else if (hitten->type == Type::ENEMYBULLET) {
-            // When two bullets collide, they turn into Wall
-            Wall* wall = new Wall(nextCoordinates, 1);
-            Wall::walls.push_back(wall);
-            field->addPrintPawn(wall);
-            Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), this));
-            wall = new Wall(coordinates, 1);
-            Wall::walls.push_back(wall);
-            field->addPrintPawn(wall);
+            // When two bullets collide, their "collided" attribute is set to true
+            ((EnemyBullet*)hitten)->collided = true;
+            collided = true;
             return;
         } else if (hitten->type == Type::MINE) {
             Mine* mine = (Mine*)hitten;
@@ -382,20 +403,15 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
                 field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
             }
         } else if (hitten->type == Type::BULLET) {
-            // When two bullets collide, they turn into Wall
-            Wall* wall = new Wall(nextCoordinates, 1);
-            Wall::walls.push_back(wall);
-            field->addPrintPawn(wall);
-            Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), (Bullet*)hitten));
-            wall = new Wall(coordinates, 1);
-            Wall::walls.push_back(wall);
-            field->addPrintPawn(wall);
-            EnemyBullet::enemyBullets.erase(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), this));
+            ((Bullet*)hitten)->collided = true;
+            collided = true;
             return;
         } else if (hitten->type == Type::ZOMBIE || hitten->type == Type::WALKER) {
             // No friendly fire
         } if (hitten->type == Type::ENEMYBULLET) {
-            EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten);
+            collided = true;
+            return;
+            // EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten);
         } else if (hitten->type == Type::MINE) {
             Mine* mine = (Mine*)hitten;
             mine->triggered = true;

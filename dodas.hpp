@@ -51,7 +51,8 @@ public:
     static ANSI::Settings bulletStyle;
     static std::vector<Bullet*> bullets;
     Direction direction;
-    unsigned short speed; // The bullet moves speed cells per frame
+    unsigned short speed = 1; // The bullet moves speed cells per frame
+    bool collided = false; // If the bullet was destroyed in a collision with an opposite bullet
 
     Bullet();
     Bullet(sista::Coordinates, Direction);
@@ -69,6 +70,7 @@ public:
     static std::vector<EnemyBullet*> enemyBullets;
     Direction direction;
     unsigned short speed = 1; // The bullet moves speed cells per frame
+    bool collided = false; // If the bullet was destroyed in a collision with an opposite bullet
 
     EnemyBullet();
     EnemyBullet(sista::Coordinates, Direction);
