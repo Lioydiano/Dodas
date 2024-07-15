@@ -287,7 +287,7 @@ ANSI::Settings Bullet::bulletStyle = {
 void Bullet::removeBullet(Bullet* bullet) {
     Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
     field->erasePawn(bullet);
-    // delete bullet;
+    delete bullet;
 }
 Bullet::Bullet() : Entity(' ', {0, 0}, bulletStyle, Type::BULLET), direction(Direction::RIGHT), speed(1) {}
 Bullet::Bullet(sista::Coordinates coordinates, Direction direction) : Entity(directionSymbol[direction], coordinates, bulletStyle, Type::BULLET), direction(direction), speed(1) {}
@@ -356,7 +356,7 @@ EnemyBullet::EnemyBullet() : Entity(' ', {0, 0}, enemyBulletStyle, Type::ENEMYBU
 void EnemyBullet::removeEnemyBullet(EnemyBullet* enemyBullet) {
     EnemyBullet::enemyBullets.erase(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), enemyBullet));
     field->erasePawn(enemyBullet);
-    // delete enemyBullet;
+    delete enemyBullet;
 }
 void EnemyBullet::move() { // Pretty sure there's a segfault here
     sista::Coordinates nextCoordinates = coordinates + directionMap[direction]*speed;
@@ -385,8 +385,8 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
             // field->erasePawn((Bullet*)hitten);
             // int index = std::find(Bullet::bullets.begin(), Bullet::bullets.end(), (Bullet*)hitten) - Bullet::bullets.begin();
             // Bullet::bullets[index] = nullptr;
-            EnemyBullet::removeEnemyBullet(this);
-            return;
+            // EnemyBullet::removeEnemyBullet(this);
+            // return;
         } else if (hitten->type == Type::ZOMBIE || hitten->type == Type::WALKER) {
             // No friendly fire
         } if (hitten->type == Type::ENEMYBULLET) {
