@@ -250,8 +250,10 @@ int main() {
         // Statistics
         Queen::queenStyle.apply();
         cursor.set(8, 55);
-        std::cout << "Ammonitions: " << Player::player->ammonitions << "    ";
+        std::cout << "Frame elapsed: " << i << " ";
         cursor.set(10, 55);
+        std::cout << "Ammonitions: " << Player::player->ammonitions << "    ";
+        cursor.set(12, 55);
         std::cout << "Life: " << Queen::queen->life;
         std::cout << std::flush;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
