@@ -615,7 +615,9 @@ bool Mine::checkTrigger() {
     for (int j=-1; j<=1; j++) {
         for (int i=-1; i<=1; i++) {
             if (i == 0 && j == 0) continue;
-            Entity* neighbor = (Entity*)field->getPawn(coordinates.y + j, coordinates.x + i);
+            sista::Coordinates nextCoordinates = coordinates + sista::Coordinates(j, i);
+            if (field->isOutOfBounds(nextCoordinates)) continue;
+            Entity* neighbor = (Entity*)field->getPawn(nextCoordinates);
             if (neighbor == nullptr) {
                 continue;
             } else if (neighbor->type == Type::ZOMBIE || neighbor->type == Type::WALKER) {
@@ -635,7 +637,9 @@ void Mine::explode() {
     for (int j=-2; j<=2; j++) {
         for (int i=-2; i<=2; i++) {
             if (i == 0 && j == 0) continue;
-            Entity* neighbor = (Entity*)field->getPawn(coordinates.y + j, coordinates.x + i);
+            sista::Coordinates nextCoordinates = coordinates + sista::Coordinates(j, i);
+            if (field->isOutOfBounds(nextCoordinates)) continue;
+            Entity* neighbor = (Entity*)field->getPawn(nextCoordinates);
             if (neighbor == nullptr) {
                 continue;
             } else if (neighbor->type == Type::ZOMBIE) {
