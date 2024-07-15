@@ -317,12 +317,14 @@ void Bullet::move() {
         } else if (hitten->type == Type::BULLET) {
             Bullet::removeBullet((Bullet*)hitten);
         } else if (hitten->type == Type::ENEMYBULLET) {
-            // field->swapTwoPawns(this, hitten);
-            // EnemyBullet::removeEnemyBullet((EnemyBullet*)hitten); // Commenting this line because it's segfaulting I believe
-            // field->erasePawn((EnemyBullet*)hitten);
-            // int index = std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), (EnemyBullet*)hitten) - EnemyBullet::enemyBullets.begin();
-            // EnemyBullet::enemyBullets[index] = nullptr;
-            // Bullet::removeBullet(this);
+            // When two bullets collide, they turn into Wall
+            Wall* wall = new Wall(nextCoordinates, 1);
+            Wall::walls.push_back(wall);
+            field->addPrintPawn(wall);
+            Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), this));
+            wall = new Wall(coordinates, 1);
+            Wall::walls.push_back(wall);
+            field->addPrintPawn(wall);
             return;
         } else if (hitten->type == Type::MINE) {
             Mine* mine = (Mine*)hitten;
@@ -380,13 +382,16 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
                 field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
             }
         } else if (hitten->type == Type::BULLET) {
-            field->swapTwoPawns(this, hitten);
-            // Bullet::removeBullet((Bullet*)hitten); // Commenting this line because it's segfaulting I believe
-            // field->erasePawn((Bullet*)hitten);
-            // int index = std::find(Bullet::bullets.begin(), Bullet::bullets.end(), (Bullet*)hitten) - Bullet::bullets.begin();
-            // Bullet::bullets[index] = nullptr;
-            // EnemyBullet::removeEnemyBullet(this);
-            // return;
+            // When two bullets collide, they turn into Wall
+            Wall* wall = new Wall(nextCoordinates, 1);
+            Wall::walls.push_back(wall);
+            field->addPrintPawn(wall);
+            Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), (Bullet*)hitten));
+            wall = new Wall(coordinates, 1);
+            Wall::walls.push_back(wall);
+            field->addPrintPawn(wall);
+            EnemyBullet::enemyBullets.erase(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), this));
+            return;
         } else if (hitten->type == Type::ZOMBIE || hitten->type == Type::WALKER) {
             // No friendly fire
         } if (hitten->type == Type::ENEMYBULLET) {
