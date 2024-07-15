@@ -1,5 +1,6 @@
 #include "cross_platform.hpp"
 #include "dodas.hpp"
+#include <algorithm>
 #include <fstream>
 #include <thread>
 #include <chrono>
@@ -194,14 +195,19 @@ int main() {
         // removeNullptrs((std::vector<Entity*>&)Mine::mines);
         for (auto mine : Mine::mines)
             mine->checkTrigger();
-        // removeNullptrs((std::vector<Entity*>&)Cannon::cannons);
-        for (auto cannon : Cannon::cannons)
-            if (Cannon::distribution(rng))
-                cannon->fire();
         // removeNullptrs((std::vector<Entity*>&)Worker::workers);
-        for (auto worker : Worker::workers)
+        std::vector<std::vector<unsigned short>> workersPositions(20, std::vector<unsigned short>()); // workersPositions[y] = {x1, x2, x3, ...} where the workers are
+        for (auto worker : Worker::workers) {
+            workersPositions[worker->getCoordinates().y].push_back(worker->getCoordinates().x);
             if (worker->distribution(rng))
                 worker->produce();
+        }
+        // removeNullptrs((std::vector<Entity*>&)Cannon::cannons);
+        for (auto cannon : Cannon::cannons) {
+            cannon->recomputeDistribution(workersPositions);
+            if (cannon->distribution(rng))
+                cannon->fire();
+        }
         // removeNullptrs((std::vector<Entity*>&)Bomber::bombers);
         for (auto bomber : Bomber::bombers)
             bomber->move();
@@ -691,6 +697,18 @@ void Cannon::fire() {
     Bullet* newbullet = new Bullet(spawn, Direction::RIGHT);
     Bullet::bullets.push_back(newbullet);
     field->addPrintPawn(newbullet);
+}
+void Cannon::recomputeDistribution(std::vector<std::vector<unsigned short>>& workersPositions) {
+    // Count the consecutive workers in the same row right back to the cannon
+    unsigned short count = 0;
+    for (unsigned short i=coordinates.x-1; i>=0; i--) {
+        if (std::find(workersPositions[coordinates.y].begin(), workersPositions[coordinates.y].end(), i) != workersPositions[coordinates.y].end()) {
+            count++;
+        } else {
+            break; // If there's no worker in the position, then there's no need to keep counting
+        }
+    }
+    distribution = std::bernoulli_distribution(1.0/((float)CANNON_FIRE_PERIOD - std::min(1.4*count, 39.0)));
 }
 
 ANSI::Settings Worker::workerStyle = {

@@ -173,6 +173,7 @@ public:
     Cannon(sista::Coordinates, unsigned short);
 
     void fire();
+    void recomputeDistribution(std::vector<std::vector<unsigned short>>&);
 
     static void removeCannon(Cannon*);
 };
