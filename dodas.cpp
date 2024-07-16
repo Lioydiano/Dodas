@@ -308,6 +308,10 @@ int main(int argc, char** argv) {
         std::cout << "Ammonitions: " << Player::player->ammonitions << "    ";
         cursor.set(12, 55);
         std::cout << "Life: " << Queen::queen->life;
+        if (!unofficial) {
+            cursor.set(14, 55);
+            std::cout << START_AMMONITION; // The official run should show the starting ammonition
+        }
         std::cout << std::flush;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
