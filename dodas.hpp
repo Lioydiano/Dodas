@@ -14,6 +14,7 @@
 
 #define START_AMMONITION 10
 
+#define DEBUG 0
 
 enum Type {
     PLAYER,

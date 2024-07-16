@@ -226,25 +226,31 @@ int main(int argc, char** argv) {
                 cannon->fire();
         }
         // removeNullptrs((std::vector<Entity*>&)Bomber::bombers);
-        for (auto bomber : Bomber::bombers)
+        for (unsigned j = 0; j < Bomber::bombers.size(); j++) {
+            Bomber* bomber = Bomber::bombers[j];
+            if (bomber == nullptr) continue;
             bomber->move();
+        }
         try {
             Queen::queen->move();
         } catch (std::exception& e) {
             // Nothing to do here
         }
         // removeNullptrs((std::vector<Entity*>&)Wall::walls);
-        for (auto wall : Wall::walls) {
+        for (unsigned j = 0; j < Wall::walls.size(); j++) {
+            Wall* wall = Wall::walls[j];
+            if (wall == nullptr) continue;
             if (wall->strength == 0) {
                 Wall::removeWall(wall);
             }
         }
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
-        for (unsigned i=0; i<Mine::mines.size(); i++) {
-            if (i >= Mine::mines.size()) break;
-            if (Mine::mines[i]->triggered) {
-                Mine::mines[i]->explode();
-                Mine::removeMine(Mine::mines[i]);
+        for (unsigned j=0; j<Mine::mines.size(); j++) {
+            if (j >= Mine::mines.size()) break;
+            if (Mine::mines[j] == nullptr) continue;
+            if (Mine::mines[j]->triggered) {
+                Mine::mines[j]->explode();
+                Mine::removeMine(Mine::mines[j]);
             }
         }
 
@@ -832,7 +838,7 @@ void Bomber::move() {
         }
     } else if (neighbor->type == Type::BOMBER) {
         return;
-    }   
+    }
     Bomber::removeBomber(this);
 }
 void Bomber::explode() {
