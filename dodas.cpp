@@ -383,6 +383,7 @@ void Bullet::move() {
             Queen* mother = (Queen*)hitten;
             mother->life--;
             field->rePrintPawn(mother);
+            mother->createWall();
             if (mother->life == 0) {
                 // win();
                 end = true;
@@ -602,6 +603,32 @@ void Queen::move() {
         }
     }
 }
+void Queen::createWall() {
+    // First determine the length of the wall
+    unsigned short length = rand() % 3 + 3; // in range [3, 5]
+    // Then determine the position of the wall (the center of the wall is on the y coordinate of the queen)
+    unsigned short y = coordinates.y;
+    // Then search for an x coordinate which is free
+    unsigned short x = 48;
+    for (; x >= 30; x--) {
+        // We need to check all the cells in range {[y-length/2, y+1+length/2], x}
+        bool free = true;
+        for (unsigned short j=y-length/2; j<=y+1+length/2; j++) {
+            if (!field->isFree(j, x)) {
+                free = false;
+                break;
+            }
+        }
+        if (free) break;
+    }
+    if (x <= 30) return; // No free space to create the wall
+    // Now we can create the wall
+    for (unsigned short j=y-length/2; j<=y+1+length/2; j++) {
+        Wall* wall = new Wall({j, x}, 1);
+        Wall::walls.push_back(wall);
+        field->addPrintPawn(wall);
+    }
+}
 
 ANSI::Settings Wall::wallStyle = {
     ANSI::ForegroundColor::F_YELLOW,
@@ -674,6 +701,7 @@ void Mine::explode() {
                 Queen* mother = (Queen*)neighbor;
                 mother->life--;
                 field->rePrintPawn(mother);
+                mother->createWall();
                 if (mother->life == 0) {
                     // win();
                     end = true;
@@ -797,6 +825,7 @@ void Bomber::move() {
         Queen* mother = (Queen*)neighbor;
         mother->life--;
         field->rePrintPawn(mother);
+        mother->createWall();
         if (mother->life == 0) {
             // win();
             end = true;
@@ -830,6 +859,7 @@ void Bomber::explode() {
                 Queen* mother = (Queen*)neighbor;
                 mother->life--;
                 field->rePrintPawn(mother);
+                mother->createWall();
                 if (mother->life == 0) {
                     // win();
                     end = true;

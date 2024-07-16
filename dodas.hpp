@@ -127,8 +127,7 @@ public:
     Queen(sista::Coordinates);
 
     void move(); // Only moves vertically in a small range, I want it to always be near the center
-    // void shoot(); // Only shoots horizontally to the left
-    // void spawnZombie(); // Spawns a zombie at a random position (but I would like the zombies to be born close to the mother)
+    void createWall(); // Creates a 1x[3-5] wall of strenght 1 in front of the queen
 };
 
 
