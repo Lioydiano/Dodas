@@ -27,7 +27,7 @@ sista::Cursor cursor;
 bool pause_ = false;
 bool end = false;
 
-int main() {
+int main(int argc, char** argv) {
     #ifdef __APPLE__
         term_echooff();
     #endif
@@ -47,6 +47,19 @@ int main() {
             ANSI::Attribute::BRIGHT
         }
     );
+    bool unofficial = false;
+    if (argc > 1) {
+        // if argv contains "--unofficial" or "-u" then the game will be played in the unofficial mode
+        if (std::string(argv[1]) == "--unofficial" || std::string(argv[1]) == "-u" || std::string(argv[1]) == "-U") {
+            border = sista::Border('0', {
+                    ANSI::ForegroundColor::F_WHITE,
+                    ANSI::BackgroundColor::B_BLACK,
+                    ANSI::Attribute::BRIGHT
+                }
+            ); // An unofficial run is marked with a '0' in the border
+            unofficial = true;
+        }
+    }
 
     field->addPrintPawn(Player::player = new Player({10, 18}));
     field->addPrintPawn(Queen::queen = new Queen({10, 49}));
@@ -137,9 +150,13 @@ int main() {
         }
     });
     for (unsigned i=0; !end; i++) {
-        if (pause_) {
+        if (unofficial) {
+            while (pause_) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            } // So the game doesn't run while paused, and the speedrun is not affected, so it's unofficial
+        } else if (pause_) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            continue;
+            continue; // So the game keeps increasing the frame counter, and the speedrun is affected by the pause
         }
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned i=0; i<Bullet::bullets.size(); i++) {
