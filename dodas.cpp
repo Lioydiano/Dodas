@@ -813,9 +813,9 @@ void Bomber::move() {
         // lose();
         end = true;
     } else if (neighbor->type == Type::BULLET) {
-        Bullet::removeBullet((Bullet*)neighbor);
+        ((Bullet*)neighbor)->collided = true;
     } else if (neighbor->type == Type::ENEMYBULLET) {
-        EnemyBullet::removeEnemyBullet((EnemyBullet*)neighbor);
+        ((EnemyBullet*)neighbor)->collided = true;
     } else if (neighbor->type == Type::MINE) {
         Mine* mine = (Mine*)neighbor;
         mine->triggered = true;
@@ -830,7 +830,9 @@ void Bomber::move() {
             // win();
             end = true;
         }
-    }
+    } else if (neighbor->type == Type::BOMBER) {
+        return;
+    }   
     Bomber::removeBomber(this);
 }
 void Bomber::explode() {
@@ -848,8 +850,6 @@ void Bomber::explode() {
                 Zombie::removeZombie((Zombie*)neighbor);
             } else if (neighbor->type == Type::WALKER) {
                 Walker::removeWalker((Walker*)neighbor);
-            } else if (neighbor->type == Type::ENEMYBULLET) {
-                EnemyBullet::removeEnemyBullet((EnemyBullet*)neighbor);
             } else if (neighbor->type == Type::MINE) {
                 Mine* mine = (Mine*)neighbor;
                 mine->triggered = true;
@@ -874,6 +874,8 @@ void Bomber::explode() {
                 } else {
                     wall->strength -= damage;
                 }
+            } else if (neighbor->type == Type::BOMBER) {
+                continue;
             }
         }
     }
