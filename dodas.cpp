@@ -161,12 +161,16 @@ int main(int argc, char** argv) {
         }
         debug << "Frame: " << i << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
-        for (unsigned i=0; i<Bullet::bullets.size(); i++) {
-            if (i >= Bullet::bullets.size()) break;
-            Bullet* bullet = Bullet::bullets[i];
+        for (unsigned j=0; j<Bullet::bullets.size(); j++) {
+            if (j >= Bullet::bullets.size()) break;
+            debug << "\tBullet " << j << std::endl;
+            Bullet* bullet = Bullet::bullets[j];
             if (bullet == nullptr) continue;
+            debug << "\t\tNot nullptr " << bullet << std::endl;
             if (bullet->collided) continue;
+            debug << "\t\tNot collided" << std::endl;
             bullet->move();
+            debug << "\t\tAfter move" << std::endl;
         }
         debug << "\tAfter bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
@@ -183,9 +187,9 @@ int main(int argc, char** argv) {
         debug << "\tAfter bullets deletion" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
-        for (unsigned i=0; i<EnemyBullet::enemyBullets.size(); i++) {
-            if (i >= EnemyBullet::enemyBullets.size()) break;
-            EnemyBullet* enemyBullet = EnemyBullet::enemyBullets[i];
+        for (unsigned j=0; j<EnemyBullet::enemyBullets.size(); j++) {
+            if (j >= EnemyBullet::enemyBullets.size()) break;
+            EnemyBullet* enemyBullet = EnemyBullet::enemyBullets[j];
             if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) continue;
             enemyBullet->move();
@@ -372,52 +376,78 @@ Bullet::Bullet(sista::Coordinates coordinates, Direction direction, unsigned sho
 void Bullet::move() {
     sista::Coordinates nextCoordinates = coordinates + directionMap[direction]*speed;
     if (field->isOutOfBounds(nextCoordinates)) {
+        debug << "Out of bounds" << std::endl;
         Bullet::removeBullet(this);
+        debug << "After remove" << std::endl;
         return;
     } else if (field->isFree(nextCoordinates)) {
+        debug << "Free" << std::endl;
         field->movePawn(this, nextCoordinates);
+        debug << "After move" << std::endl;
         coordinates = nextCoordinates;
         return;
     } else { // Something was hitten
         Entity* hitten = (Entity*)field->getPawn(nextCoordinates);
+        debug << "Hitten " << hitten << std::endl;
         if (hitten->type == Type::WALL) {
+            debug << "\tWall" << std::endl;
             Wall* wall = (Wall*)hitten;
             wall->strength--;
+            debug << "\tWall's strength: " << wall->strength << std::endl;
             if (wall->strength == 0) {
                 wall->setSymbol('@'); // Change the symbol to '@' to indicate that the wall was destroyed
                 field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
             }
         } else if (hitten->type == Type::ZOMBIE) {
+            debug << "\tZombie" << std::endl;
             Zombie::removeZombie((Zombie*)hitten);
+            debug << "\tZombie removed" << std::endl;
         } else if (hitten->type == Type::WALKER) {
+            debug << "\tWalker" << std::endl;
             Walker::removeWalker((Walker*)hitten);
+            debug << "\tWalker removed" << std::endl;
         } else if (hitten->type == Type::BULLET) {
+            debug << "\tBullet" << std::endl;
             ((Bullet*)hitten)->collided = true;
+            debug << "\tBullet collided" << std::endl;
             // Bullet::removeBullet((Bullet*)hitten);
             return;
         } else if (hitten->type == Type::ENEMYBULLET) {
             // When two bullets collide, their "collided" attribute is set to true
+            debug << "\tEnemy bullet" << std::endl;
             ((EnemyBullet*)hitten)->collided = true;
+            debug << "\tEnemy bullet collided" << std::endl;
             collided = true;
+            debug << "\tBullet collided" << std::endl;
             return;
         } else if (hitten->type == Type::MINE) {
+            debug << "\tMine" << std::endl;
             Mine* mine = (Mine*)hitten;
             mine->triggered = true;
+            debug << "\tMine triggered" << std::endl;
         } else if (hitten->type == Type::CANNON) {
+            debug << "\tCannon" << std::endl;
             Cannon* cannon = (Cannon*)hitten;
             // Makes the cannon fire
+            debug << "\tCannon firing" << std::endl;
             cannon->fire();
+            debug << "\tCannon fired" << std::endl;
         } else if (hitten->type == Type::QUEEN) {
+            debug << "\tQueen" << std::endl;
             Queen* mother = (Queen*)hitten;
             mother->life--;
+            debug << "\tQueen's life: " << mother->life << std::endl;
             field->rePrintPawn(mother);
             mother->createWall();
+            debug << "\tQueen's wall created" << std::endl;
             if (mother->life == 0) {
                 // win();
                 end = true;
             }
         }
+        debug << "\tAfter collision" << std::endl;
         Bullet::removeBullet(this);
+        debug << "\tAfter remove" << std::endl;
     }
 }
 
