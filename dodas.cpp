@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 
+std::ofstream debug("debug.log");
 
 sista::SwappableField* field;
 
@@ -158,6 +159,7 @@ int main(int argc, char** argv) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue; // So the game keeps increasing the frame counter, and the speedrun is affected by the pause
         }
+        debug << "Frame: " << i << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned i=0; i<Bullet::bullets.size(); i++) {
             if (i >= Bullet::bullets.size()) break;
@@ -166,16 +168,19 @@ int main(int argc, char** argv) {
             if (bullet->collided) continue;
             bullet->move();
         }
+        debug << "\tAfter bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
+        debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
+        debug << "\tAfter bullets deletion" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         for (unsigned i=0; i<EnemyBullet::enemyBullets.size(); i++) {
@@ -185,33 +190,40 @@ int main(int argc, char** argv) {
             if (enemyBullet->collided) continue;
             enemyBullet->move();
         }
+        debug << "\tAfter enemy bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
+        debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
+        debug << "\tAfter bullets deletion" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         // removeNullptrs((std::vector<Entity*>&)Zombie::zombies);
         for (auto zombie : Zombie::zombies) {
             if (Zombie::distribution(rng))
                 zombie->move();
         }
+        debug << "\tAfter zombies" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
         for (auto zombie : Zombie::zombies)
             if (Zombie::shootDistribution(rng))
                 zombie->shoot();
+        debug << "\tAfter zombies shooting" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
         for (auto walker : Walker::walkers)
             if (Walker::distribution(rng))
                 walker->move();
+        debug << "\tAfter walkers" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Mine::mines);
         for (auto mine : Mine::mines)
             mine->checkTrigger();
+        debug << "\tAfter mines" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Worker::workers);
         std::vector<std::vector<unsigned short>> workersPositions(20, std::vector<unsigned short>()); // workersPositions[y] = {x1, x2, x3, ...} where the workers are
         for (auto worker : Worker::workers) {
@@ -219,23 +231,27 @@ int main(int argc, char** argv) {
             if (worker->distribution(rng))
                 worker->produce();
         }
+        debug << "\tAfter workers" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Cannon::cannons);
         for (auto cannon : Cannon::cannons) {
             cannon->recomputeDistribution(workersPositions);
             if (cannon->distribution(rng))
                 cannon->fire();
         }
+        debug << "\tAfter cannons" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bomber::bombers);
         for (unsigned j = 0; j < Bomber::bombers.size(); j++) {
             Bomber* bomber = Bomber::bombers[j];
             if (bomber == nullptr) continue;
             bomber->move();
         }
+        debug << "\tAfter bombers" << std::endl;
         try {
             Queen::queen->move();
         } catch (std::exception& e) {
             // Nothing to do here
         }
+        debug << "\tAfter queen" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Wall::walls);
         for (unsigned j = 0; j < Wall::walls.size(); j++) {
             Wall* wall = Wall::walls[j];
@@ -244,6 +260,7 @@ int main(int argc, char** argv) {
                 Wall::removeWall(wall);
             }
         }
+        debug << "\tAfter walls" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned j=0; j<Mine::mines.size(); j++) {
             if (j >= Mine::mines.size()) break;
@@ -253,6 +270,7 @@ int main(int argc, char** argv) {
                 Mine::removeMine(Mine::mines[j]);
             }
         }
+        debug << "\tAfter mines explosion" << std::endl;
 
         if (i % 100 == 0) {
             unsigned short y = rand() % 20;
@@ -262,6 +280,7 @@ int main(int argc, char** argv) {
                 field->addPrintPawn(walker);
             }
         }
+        debug << "\tAfter walkers spawning" << std::endl;
         if (i % 200 == 0) {
             unsigned short y = rand() % 20;
             if (Queen::queen->getCoordinates().y != y) {
@@ -270,6 +289,7 @@ int main(int argc, char** argv) {
                 field->addPrintPawn(zombie);
             }
         }
+        debug << "\tAfter zombies spawning" << std::endl;
         Queen::queen->setSymbol('0' + Queen::queen->life);
         field->rePrintPawn(Queen::queen);
         if (i % 10 == 0) {
@@ -307,9 +327,11 @@ int main(int argc, char** argv) {
                 }
             }
         }
+        debug << "\tBefore erasing nullptrs" << std::endl;
         for (auto coord : coordinates) {
             field->erasePawn(coord);
         }
+        debug << "\tAfter erasing nullptrs" << std::endl;
     }
     th.join();
     cursor.set(52, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
