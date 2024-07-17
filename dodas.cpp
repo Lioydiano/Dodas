@@ -160,6 +160,11 @@ int main(int argc, char** argv) {
             continue; // So the game keeps increasing the frame counter, and the speedrun is affected by the pause
         }
         debug << "Frame: " << i << std::endl;
+        #if DEBUG
+        for (unsigned j=0; j<Bullet::bullets.size(); j++) {
+            debug << "\tBullet " << j << ": " << Bullet::bullets[j] << std::endl;
+        }
+        #endif
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
             if (j >= Bullet::bullets.size()) break;
