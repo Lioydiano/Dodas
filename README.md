@@ -59,9 +59,21 @@ Which on Windows can be done by running:
 dodas
 ```
 
-If you want your record to be considered, you must run `./dodas` with no flags and without editing constants such as `START_AMMONITION`.
+### Options
+
+If you want your record to be considered, you must run `./dodas` with no `-U` flag and without editing constants such as `START_AMMONITION`.
 
 If you want the game to be pausable, you must run `./dodas -U` or `./dodas -unofficial`.
+
+If you don't want the music to be played, you must run `./dodas -M` or `./dodas --music-off`.
+
+If you want the music to be played correctly, you may need some libraries, see this list:
+
+- Linux: [`canberra-gtk-play`](https://askubuntu.com/questions/1175572/how-to-fix-error-failed-to-load-module-canberra-gtk-module) which must be installed with `sudo apt-get install libcanberra-gtk-module`
+- MacOS: [`afplay`](https://ss64.com/mac/afplay.html) which is included in the MacOS API
+- Windows: `PlaySound` from `winmm.dll` which is included in the Windows API
+
+Also, you must have the `music` folder in the same directory as the `dodas` executable.
 
 ## How to play
 

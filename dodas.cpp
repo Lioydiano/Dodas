@@ -49,16 +49,24 @@ int main(int argc, char** argv) {
         }
     );
     bool unofficial = false;
+    bool music = true;
     if (argc > 1) {
-        // if argv contains "--unofficial" or "-u" then the game will be played in the unofficial mode
-        if (std::string(argv[1]) == "--unofficial" || std::string(argv[1]) == "-u" || std::string(argv[1]) == "-U") {
-            border = sista::Border('0', {
-                    ANSI::ForegroundColor::F_WHITE,
-                    ANSI::BackgroundColor::B_BLACK,
-                    ANSI::Attribute::BRIGHT
-                }
-            ); // An unofficial run is marked with a '0' in the border
-            unofficial = true;
+        for (unsigned short i=1; i<argc; i++) {
+            // if argv contains "--unofficial" or "-u" then the game will be played in the unofficial mode
+            if (std::string(argv[i]) == "--unofficial" || std::string(argv[i]) == "-u" || std::string(argv[i]) == "-U") {
+                border = sista::Border('0', {
+                        ANSI::ForegroundColor::F_WHITE,
+                        ANSI::BackgroundColor::B_BLACK,
+                        ANSI::Attribute::BRIGHT
+                    }
+                ); // An unofficial run is marked with a '0' in the border
+                unofficial = true;
+            }
+            // if argv contains "--music-off" or "-m" then the music will be turned off
+            if (std::string(argv[i]) == "--music-off" || std::string(argv[i]) == "-m" || std::string(argv[i]) == "-M") {
+                // The music thread will be joined and the game will be played without music
+                music = false;
+            }
         }
     }
 
@@ -150,6 +158,51 @@ int main(int argc, char** argv) {
             }
         }
     });
+    std::thread music_th;
+    if (music) {
+        music_th = std::thread([&]() {
+            int n;
+            #ifdef __APPLE__
+            while (!end) {
+                n = rand() % 2 + 1;
+                system(("afplay audio/B" + std::string(n) + ".mp3"));
+                while (pause_) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+            }
+            #elif _WIN32
+            while (!end) {
+                n = rand() % 2 + 1;
+                while (pause_) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+                PlaySound(("audio/B" + std::to_string(n) + ".mp3").c_str(), NULL, SND_ASYNC);
+                while (!end) {
+                    if (pause_) {
+                        PlaySound(NULL, 0, 0);
+                        break;
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+                while (pause_) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+            }
+            #elif __linux__
+            while (!end) {
+                n = rand() % 2 + 1;
+                try {
+                    system(("canberra-gtk-play -f audio/B" + std::to_string(n) + ".ogg").c_str());
+                } catch (std::exception& e) {
+                    return; // If the music can't be played, the thread ends
+                }
+                while (pause_) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+            }
+            #endif
+        });
+    }
     for (unsigned i=0; !end; i++) {
         if (unofficial) {
             while (pause_) {
@@ -345,6 +398,9 @@ int main(int argc, char** argv) {
             field->erasePawn(coord);
         }
         debug << "\tAfter erasing nullptrs" << std::endl;
+    }
+    if (music) {
+        music_th.join();
     }
     th.join();
     cursor.set(52, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
