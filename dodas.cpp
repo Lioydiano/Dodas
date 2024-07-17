@@ -165,7 +165,11 @@ int main(int argc, char** argv) {
             #ifdef __APPLE__
             while (!end) {
                 n = rand() % 2 + 1;
-                system(("afplay audio/B" + std::string(n) + ".mp3"));
+                try {
+                    system(("afplay audio/B" + std::to_string(n) + ".mp3").c_str());
+                } catch (std::exception& e) {
+                    return; // If the music can't be played, the thread ends
+                }
                 while (pause_) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
@@ -176,7 +180,11 @@ int main(int argc, char** argv) {
                 while (pause_) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
-                PlaySound(("audio/B" + std::to_string(n) + ".mp3").c_str(), NULL, SND_ASYNC);
+                try {
+                    PlaySound(("audio/B" + std::to_string(n) + ".mp3").c_str(), NULL, SND_ASYNC);
+                } catch (std::exception& e) {
+                    return; // If the music can't be played, the thread ends
+                }
                 while (!end) {
                     if (pause_) {
                         PlaySound(NULL, 0, 0);
