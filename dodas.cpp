@@ -160,11 +160,13 @@ int main(int argc, char** argv) {
     });
     std::thread music_th;
     if (music) {
+        unsigned tracks = 2; // The number of tracks in the audio folder
+        int length[] = {16, 16};
         music_th = std::thread([&]() {
             int n;
             #ifdef __APPLE__
             while (!end) {
-                n = rand() % 2 + 1;
+                n = rand() % tracks + 1;
                 try {
                     char buf[1024];
                     snprintf(buf, 1024, "afplay \"audio/B%d.mp3\"", n);
@@ -177,11 +179,17 @@ int main(int argc, char** argv) {
                 }
             }
             #elif _WIN32
+            for (unsigned i=0; i<tracks; i++) {
+                debug << "audio/B" << i+1 << ".wav" << std::endl;
+                std::string track = "audio/B" + std::to_string(i+1) + ".wav";
+                debug << track << std::endl;
+                // LPCSTR track_ = track.c_str();
+                debug << "Before mciSendString" << std::endl;
+                mciSendString((LPCSTR)("open " + track + " type waveaudio alias B" + std::to_string(i+1)).c_str(), NULL, 0, NULL);
+                debug << "After mciSendString" << std::endl;
+            }
             while (!end) {
-                n = rand() % 2 + 1;
-                while (pause_) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                }
+                n = rand() % tracks + 1;
                 try {
                     debug << "audio/B" << n << ".wav" << std::endl;
                     // std::string track = "\"audio/B" + std::to_string(n) + ".wav\"";
@@ -190,20 +198,19 @@ int main(int argc, char** argv) {
                     // debug << "Before PlaySound" << std::endl;
                     // PlaySound(TEXT(track_), NULL, SND_ASYNC);
                     // mciSendString(track_, NULL, 0, NULL);
-                    mciSendString((LPCSTR)("open \"audio/B" + std::to_string(n) + ".mp3\" type mpegvideo alias mp3").c_str(), NULL, 0, NULL);
-                    mciSendString((LPCSTR)"play mp3", NULL, 0, NULL);
+                    mciSendString((LPCSTR)("play B" + std::to_string(n)).c_str(), NULL, 0, NULL);
                     debug << "After PlaySound" << std::endl;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    std::this_thread::sleep_for(std::chrono::seconds(length[n-1]));
+                    debug << "Already slept for length[" << n-1 << "] = " << length[n-1] << " seconds" << std::endl;
                 } catch (std::exception& e) {
                     debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
                 }
-                while (!end) {
-                    if (pause_) {
-                        PlaySound(NULL, 0, 0);
-                        break;
-                    }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                if (pause_) {
+                    debug << "Pausing" << std::endl;
+                    PlaySound(NULL, 0, 0);
+                    debug << "Paused" << std::endl;
+                    break;
                 }
                 while (pause_) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -211,7 +218,7 @@ int main(int argc, char** argv) {
             }
             #elif __linux__
             while (!end) {
-                n = rand() % 2 + 1;
+                n = rand() % tracks + 1;
                 try {
                     system(("canberra-gtk-play -f audio/B" + std::to_string(n) + ".ogg").c_str());
                 } catch (std::exception& e) {
@@ -236,34 +243,34 @@ int main(int argc, char** argv) {
         debug << "Frame: " << i << std::endl;
         #if DEBUG
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
-            debug << "\tBullet " << j << ": " << Bullet::bullets[j] << std::endl;
+            // debug << "\tBullet " << j << ": " << Bullet::bullets[j] << std::endl;
         }
         #endif
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
             if (j >= Bullet::bullets.size()) break;
-            debug << "\tBullet " << j << std::endl;
+            // debug << "\tBullet " << j << std::endl;
             Bullet* bullet = Bullet::bullets[j];
             if (bullet == nullptr) continue;
-            debug << "\t\tNot nullptr " << bullet << std::endl;
+            // debug << "\t\tNot nullptr " << bullet << std::endl;
             if (bullet->collided) continue;
-            debug << "\t\tNot collided" << std::endl;
+            // debug << "\t\tNot collided" << std::endl;
             bullet->move();
-            debug << "\t\tAfter move" << std::endl;
+            // debug << "\t\tAfter move" << std::endl;
         }
-        debug << "\tAfter bullets" << std::endl;
+        // debug << "\tAfter bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
-        debug << "\tAfter enemy bullets deletion" << std::endl;
+        // debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
-        debug << "\tAfter bullets deletion" << std::endl;
+        // debug << "\tAfter bullets deletion" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         for (unsigned j=0; j<EnemyBullet::enemyBullets.size(); j++) {
@@ -273,40 +280,40 @@ int main(int argc, char** argv) {
             if (enemyBullet->collided) continue;
             enemyBullet->move();
         }
-        debug << "\tAfter enemy bullets" << std::endl;
+        // debug << "\tAfter enemy bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
-        debug << "\tAfter enemy bullets deletion" << std::endl;
+        // debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
-        debug << "\tAfter bullets deletion" << std::endl;
+        // debug << "\tAfter bullets deletion" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         // removeNullptrs((std::vector<Entity*>&)Zombie::zombies);
         for (auto zombie : Zombie::zombies) {
             if (Zombie::distribution(rng))
                 zombie->move();
         }
-        debug << "\tAfter zombies" << std::endl;
+        // debug << "\tAfter zombies" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
         for (auto zombie : Zombie::zombies)
             if (Zombie::shootDistribution(rng))
                 zombie->shoot();
-        debug << "\tAfter zombies shooting" << std::endl;
+        // debug << "\tAfter zombies shooting" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
         for (auto walker : Walker::walkers)
             if (Walker::distribution(rng))
                 walker->move();
-        debug << "\tAfter walkers" << std::endl;
+        // debug << "\tAfter walkers" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Mine::mines);
         for (auto mine : Mine::mines)
             mine->checkTrigger();
-        debug << "\tAfter mines" << std::endl;
+        // debug << "\tAfter mines" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Worker::workers);
         std::vector<std::vector<unsigned short>> workersPositions(20, std::vector<unsigned short>()); // workersPositions[y] = {x1, x2, x3, ...} where the workers are
         for (auto worker : Worker::workers) {
@@ -314,27 +321,27 @@ int main(int argc, char** argv) {
             if (worker->distribution(rng))
                 worker->produce();
         }
-        debug << "\tAfter workers" << std::endl;
+        // debug << "\tAfter workers" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Cannon::cannons);
         for (auto cannon : Cannon::cannons) {
             cannon->recomputeDistribution(workersPositions);
             if (cannon->distribution(rng))
                 cannon->fire();
         }
-        debug << "\tAfter cannons" << std::endl;
+        // debug << "\tAfter cannons" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bomber::bombers);
         for (unsigned j = 0; j < Bomber::bombers.size(); j++) {
             Bomber* bomber = Bomber::bombers[j];
             if (bomber == nullptr) continue;
             bomber->move();
         }
-        debug << "\tAfter bombers" << std::endl;
+        // debug << "\tAfter bombers" << std::endl;
         try {
             Queen::queen->move();
         } catch (std::exception& e) {
             // Nothing to do here
         }
-        debug << "\tAfter queen" << std::endl;
+        // debug << "\tAfter queen" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Wall::walls);
         for (unsigned j = 0; j < Wall::walls.size(); j++) {
             Wall* wall = Wall::walls[j];
@@ -343,7 +350,7 @@ int main(int argc, char** argv) {
                 Wall::removeWall(wall);
             }
         }
-        debug << "\tAfter walls" << std::endl;
+        // debug << "\tAfter walls" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
         for (unsigned j=0; j<Mine::mines.size(); j++) {
             if (j >= Mine::mines.size()) break;
@@ -353,7 +360,7 @@ int main(int argc, char** argv) {
                 Mine::removeMine(Mine::mines[j]);
             }
         }
-        debug << "\tAfter mines explosion" << std::endl;
+        // debug << "\tAfter mines explosion" << std::endl;
 
         if (i % 100 == 0) {
             unsigned short y = rand() % 20;
@@ -363,7 +370,7 @@ int main(int argc, char** argv) {
                 field->addPrintPawn(walker);
             }
         }
-        debug << "\tAfter walkers spawning" << std::endl;
+        // debug << "\tAfter walkers spawning" << std::endl;
         if (i % 200 == 0) {
             unsigned short y = rand() % 20;
             if (Queen::queen->getCoordinates().y != y) {
@@ -372,7 +379,7 @@ int main(int argc, char** argv) {
                 field->addPrintPawn(zombie);
             }
         }
-        debug << "\tAfter zombies spawning" << std::endl;
+        // debug << "\tAfter zombies spawning" << std::endl;
         Queen::queen->setSymbol('0' + Queen::queen->life);
         field->rePrintPawn(Queen::queen);
         if (i % 10 == 0) {
@@ -414,11 +421,11 @@ int main(int argc, char** argv) {
                 }
             }
         }
-        debug << "\tBefore erasing nullptrs" << std::endl;
+        // debug << "\tBefore erasing nullptrs" << std::endl;
         for (auto coord : coordinates) {
             field->erasePawn(coord);
         }
-        debug << "\tAfter erasing nullptrs" << std::endl;
+        // debug << "\tAfter erasing nullptrs" << std::endl;
     }
     if (music) {
         music_th.join();
@@ -462,78 +469,78 @@ Bullet::Bullet(sista::Coordinates coordinates, Direction direction, unsigned sho
 void Bullet::move() {
     sista::Coordinates nextCoordinates = coordinates + directionMap[direction]*speed;
     if (field->isOutOfBounds(nextCoordinates)) {
-        debug << "Out of bounds" << std::endl;
+        // debug << "Out of bounds" << std::endl;
         Bullet::removeBullet(this);
-        debug << "After remove" << std::endl;
+        // debug << "After remove" << std::endl;
         return;
     } else if (field->isFree(nextCoordinates)) {
-        debug << "Free" << std::endl;
+        // debug << "Free" << std::endl;
         field->movePawn(this, nextCoordinates);
-        debug << "After move" << std::endl;
+        // debug << "After move" << std::endl;
         coordinates = nextCoordinates;
         return;
     } else { // Something was hitten
         Entity* hitten = (Entity*)field->getPawn(nextCoordinates);
-        debug << "Hitten " << hitten << std::endl;
+        // debug << "Hitten " << hitten << std::endl;
         if (hitten->type == Type::WALL) {
-            debug << "\tWall" << std::endl;
+            // debug << "\tWall" << std::endl;
             Wall* wall = (Wall*)hitten;
             wall->strength--;
-            debug << "\tWall's strength: " << wall->strength << std::endl;
+            // debug << "\tWall's strength: " << wall->strength << std::endl;
             if (wall->strength == 0) {
                 wall->setSymbol('@'); // Change the symbol to '@' to indicate that the wall was destroyed
                 field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
             }
         } else if (hitten->type == Type::ZOMBIE) {
-            debug << "\tZombie" << std::endl;
+            // debug << "\tZombie" << std::endl;
             Zombie::removeZombie((Zombie*)hitten);
-            debug << "\tZombie removed" << std::endl;
+            // debug << "\tZombie removed" << std::endl;
         } else if (hitten->type == Type::WALKER) {
-            debug << "\tWalker" << std::endl;
+            // debug << "\tWalker" << std::endl;
             Walker::removeWalker((Walker*)hitten);
-            debug << "\tWalker removed" << std::endl;
+            // debug << "\tWalker removed" << std::endl;
         } else if (hitten->type == Type::BULLET) {
-            debug << "\tBullet" << std::endl;
+            // debug << "\tBullet" << std::endl;
             ((Bullet*)hitten)->collided = true;
-            debug << "\tBullet collided" << std::endl;
+            // debug << "\tBullet collided" << std::endl;
             // Bullet::removeBullet((Bullet*)hitten);
             return;
         } else if (hitten->type == Type::ENEMYBULLET) {
             // When two bullets collide, their "collided" attribute is set to true
-            debug << "\tEnemy bullet" << std::endl;
+            // debug << "\tEnemy bullet" << std::endl;
             ((EnemyBullet*)hitten)->collided = true;
-            debug << "\tEnemy bullet collided" << std::endl;
+            // debug << "\tEnemy bullet collided" << std::endl;
             collided = true;
-            debug << "\tBullet collided" << std::endl;
+            // debug << "\tBullet collided" << std::endl;
             return;
         } else if (hitten->type == Type::MINE) {
-            debug << "\tMine" << std::endl;
+            // debug << "\tMine" << std::endl;
             Mine* mine = (Mine*)hitten;
             mine->triggered = true;
-            debug << "\tMine triggered" << std::endl;
+            // debug << "\tMine triggered" << std::endl;
         } else if (hitten->type == Type::CANNON) {
-            debug << "\tCannon" << std::endl;
+            // debug << "\tCannon" << std::endl;
             Cannon* cannon = (Cannon*)hitten;
             // Makes the cannon fire
-            debug << "\tCannon firing" << std::endl;
+            // debug << "\tCannon firing" << std::endl;
             cannon->fire();
-            debug << "\tCannon fired" << std::endl;
+            // debug << "\tCannon fired" << std::endl;
         } else if (hitten->type == Type::QUEEN) {
-            debug << "\tQueen" << std::endl;
+            // debug << "\tQueen" << std::endl;
             Queen* mother = (Queen*)hitten;
             mother->life--;
-            debug << "\tQueen's life: " << mother->life << std::endl;
+            // debug << "\tQueen's life: " << mother->life << std::endl;
             field->rePrintPawn(mother);
             mother->createWall();
-            debug << "\tQueen's wall created" << std::endl;
+            // debug << "\tQueen's wall created" << std::endl;
             if (mother->life == 0) {
                 // win();
                 end = true;
             }
         }
-        debug << "\tAfter collision" << std::endl;
+        // debug << "\tAfter collision" << std::endl;
         Bullet::removeBullet(this);
-        debug << "\tAfter remove" << std::endl;
+        // debug << "\tAfter remove" << std::endl;
     }
 }
 
