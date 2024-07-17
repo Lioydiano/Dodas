@@ -160,8 +160,8 @@ int main(int argc, char** argv) {
     });
     std::thread music_th;
     if (music) {
-        unsigned tracks = 2; // The number of tracks in the audio folder
-        int length[] = {16, 16};
+        const unsigned tracks = 2; // The number of tracks in the audio folder
+        const int length[] = {16, 16};
         music_th = std::thread([&]() {
             int n;
             #ifdef __APPLE__
@@ -218,13 +218,18 @@ int main(int argc, char** argv) {
             }
             #elif __linux__
             while (!end) {
-                n = rand() % tracks + 1;
+                n = (rand() % tracks) + 1;
+                // debug << "audio/B" << n << ".ogg" << std::endl;
                 try {
                     system(("canberra-gtk-play -f audio/B" + std::to_string(n) + ".ogg").c_str());
+                    // debug << "After canberra-gtk-play" << std::endl;
                 } catch (std::exception& e) {
+                    debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
                 }
                 while (pause_) {
+                    // debug << "Pausing" << std::endl;
+                    if (end) return;
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
             }
