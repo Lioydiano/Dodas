@@ -1,6 +1,8 @@
 #include <cstdio>
 #ifdef _WIN32
     #include <windows.h>
+    #include <mmsystem.h>
+    // #pragma comment(lib,"winmm.lib")
 #endif
 #ifdef _WIN32
     #include <conio.h>

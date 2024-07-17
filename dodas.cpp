@@ -166,7 +166,9 @@ int main(int argc, char** argv) {
             while (!end) {
                 n = rand() % 2 + 1;
                 try {
-                    system(("afplay audio/B" + std::to_string(n) + ".mp3").c_str());
+                    char buf[1024];
+                    snprintf(buf, 1024, ("afplay \"audio/B" + std::to_string(n) + ".mp3\"").c_str());
+                    system(buf);
                 } catch (std::exception& e) {
                     return; // If the music can't be played, the thread ends
                 }
@@ -181,8 +183,17 @@ int main(int argc, char** argv) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
                 try {
-                    PlaySound(("audio/B" + std::to_string(n) + ".mp3").c_str(), NULL, SND_ASYNC);
+                    // debug << "audio/B" << n << ".ogg" << std::endl;
+                    std::string track = "play \"audio/B" + std::to_string(n) + ".ogg\"";
+                    LPCSTR track_ = track.c_str();
+                    // LPCWSTR track_w = (LPCWSTR)track_;
+                    // PlaySound(track_, NULL, SND_ASYNC);
+                    // PlaySound(TEXT("audio/B1.ogg"), NULL, SND_ASYNC);
+                    mciSendString(track_, NULL, 0, NULL);
+                    debug << "After PlaySound" << std::endl;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 } catch (std::exception& e) {
+                    debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
                 }
                 while (!end) {
