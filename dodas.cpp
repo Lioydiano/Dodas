@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
                 n = rand() % 2 + 1;
                 try {
                     char buf[1024];
-                    snprintf(buf, 1024, ("afplay \"audio/B" + std::to_string(n) + ".mp3\"").c_str());
+                    snprintf(buf, 1024, "afplay \"audio/B%d.mp3\"", n);
                     system(buf);
                 } catch (std::exception& e) {
                     return; // If the music can't be played, the thread ends
@@ -183,13 +183,15 @@ int main(int argc, char** argv) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
                 try {
-                    // debug << "audio/B" << n << ".ogg" << std::endl;
-                    std::string track = "play \"audio/B" + std::to_string(n) + ".ogg\"";
-                    LPCSTR track_ = track.c_str();
-                    // LPCWSTR track_w = (LPCWSTR)track_;
-                    // PlaySound(track_, NULL, SND_ASYNC);
-                    // PlaySound(TEXT("audio/B1.ogg"), NULL, SND_ASYNC);
-                    mciSendString(track_, NULL, 0, NULL);
+                    debug << "audio/B" << n << ".wav" << std::endl;
+                    // std::string track = "\"audio/B" + std::to_string(n) + ".wav\"";
+                    // debug << track << std::endl;
+                    // LPCSTR track_ = track.c_str();
+                    // debug << "Before PlaySound" << std::endl;
+                    // PlaySound(TEXT(track_), NULL, SND_ASYNC);
+                    // mciSendString(track_, NULL, 0, NULL);
+                    mciSendString((LPCSTR)("open \"audio/B" + std::to_string(n) + ".mp3\" type mpegvideo alias mp3").c_str(), NULL, 0, NULL);
+                    mciSendString((LPCSTR)"play mp3", NULL, 0, NULL);
                     debug << "After PlaySound" << std::endl;
                     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 } catch (std::exception& e) {
