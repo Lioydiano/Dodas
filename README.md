@@ -89,6 +89,8 @@ You must kill the queen as fast as possible, because the zombies will keep spawn
 
 ### Controls
 
+⚠️ sadly, on MacOS you must always press `enter` to send commands
+
 - `w`/`a`/`s`/`d` to move (up/left/down/right, uppercase `A`/`S`/`D` also work)
 - `Q` to quit (lowercase `q` won't work because it caused unintentional exits)
 - `i`/`j`/`k`/`l` to shoot and build (up/left/down/right)

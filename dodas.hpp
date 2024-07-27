@@ -15,6 +15,11 @@
 #define START_AMMONITION 10
 
 #define DEBUG 1
+#define INTRO 1
+#define VERSION "0.5.0"
+#define DATE "2024/07/27"
+
+void printIntro();
 
 enum Type {
     PLAYER,

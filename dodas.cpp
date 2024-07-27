@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     #endif
     std::ios_base::sync_with_stdio(false);
     ANSI::reset(); // Reset the settings
-    srand(time(NULL)); // Seed the random number generator
+    srand(time(0)); // Seed the random number generator
     #if INTRO
         printIntro();
     #endif
@@ -438,6 +438,36 @@ int main(int argc, char** argv) {
     th.join();
     cursor.set(52, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+}
+
+void printIntro() {
+    std::cout << CLS; // Clear screen
+    std::cout << SSB; // Clear scrollback buffer
+    std::cout << "\x1b]2;de dödas angrepp\x07"; // Set window title
+    std::cout << "\t\t\t\t\t\x1b[3m  Dödas\x1b[0m\n\t\t\t\t\x1b[3mYou better not fuck with \x1b[34;40mB\x1b[0m\n\n";
+    std::cout << "\t\t\t  \x1b[31;1mDödas v" << VERSION << "\t\tFLAK-ZOSO " << DATE << "\x1b[0m\n\n";
+
+    std::cout << "\t\thttps://github.com/Lioydiano/Dodas?tab=readme-ov-file#how-to-play\n\n";
+    std::cout << "\t\t\t\t- '\x1b[35mQ\x1b[0m' to \x1b[3mquit\x1b[0m\n";
+    std::cout << "\t\t\t\t- '\x1b[35m.\x1b[0m' to \x1b[3mpause\x1b[0m and \x1b[3mresume\x1b[0m\n";
+    std::cout << "\t\t\t\t- '\x1b[35mw\x1b[0m | \x1b[35ma\x1b[0m | \x1b[35ms\x1b[0m | \x1b[35md\x1b[0m' to step\n";
+    std::cout << "\t\t\t\t- '\x1b[35mi\x1b[0m | \x1b[35mj\x1b[0m | \x1b[35mk\x1b[0m | \x1b[35ml\x1b[0m' to fire a bullet\n";
+    std::cout << "\t\t\t\t- '\x1b[35mp\x1b[0m' to select bullets\n";
+    std::cout << "\t\t\t\t- '\x1b[35mm\x1b[0m' to select mines\n";
+    std::cout << "\t\t\t\t- '\x1b[35mc\x1b[0m' to select cannons\n";
+    std::cout << "\t\t\t\t- '\x1b[35mW\x1b[0m' to select workers\n";
+    std::cout << "\t\t\t\t- '\x1b[35m=\x1b[0m' or '\x1b[35m0\x1b[0m' to select walls\n";
+    std::cout << "\t\t\t\t- '\x1b[35mb\x1b[0m' to select bombers\n\n";
+
+    std::cout << "\t\t\t\tDefeat the \x1b[31mqueen\x1b[0m to win\x1b[0m\n\n";
+    std::cout << "\t\t\t\t\x1b[3mPress any key to start\x1b[0m";
+    std::flush(std::cout);
+    #if defined(_WIN32) or defined(__linux__)
+        getch();
+    #elif __APPLE__
+        getchar();
+    #endif
+    sista::clearScreen();
 }
 
 
