@@ -176,7 +176,16 @@ Despite not being intelligent in any way, her movements are unpredictable.
 - FLAK-ZOSO for writing the code
 - Il Pensionato Sentenzioso ([Karmolupe](https://karmolupe.bandcamp.com/)) for the music, still in development
 
+# Records
+
+- `v0.2` record: `1783` by FLAK-ZOSO
+- `v0.3` record: `2145` by FLAK-ZOSO
+- `v0.4` record: `2102` by FLAK-ZOSO
+- `v0.5` record: `1903` by Francesco Corradin
+
 # Screenshots
 
 ![v0.3.0 speedrun record](images/v0.3%20record.png)
+![v0.5.0 speedrun record](https://github.com/user-attachments/assets/58d6398f-366e-4e22-b8ac-3378555b8881)
+
 ![Bombers exploding, breaking walls and hitting the queen](images/bombers%20and%20broken%20walls.png)
