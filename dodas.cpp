@@ -443,9 +443,16 @@ int main(int argc, char** argv) {
 void printIntro() {
     std::cout << CLS; // Clear screen
     std::cout << SSB; // Clear scrollback buffer
-    std::cout << "\x1b]2;de dödas angrepp\x07"; // Set window title
-    std::cout << "\t\t\t\t\t\x1b[3m  Dödas\x1b[0m\n\t\t\t\t\x1b[3mYou better not fuck with \x1b[34;40mB\x1b[0m\n\n";
-    std::cout << "\t\t\t  \x1b[31;1mDödas v" << VERSION << "\t\tFLAK-ZOSO " << DATE << "\x1b[0m\n\n";
+    // if linux
+    #if __linux__ or __APPLE__
+        std::cout << "\x1b]2;de dödas angrepp\x07"; // Set window title
+        std::cout << "\t\t\t\t\t\x1b[3m  Dödas\x1b[0m\n\t\t\t\t\x1b[3mYou better not fuck with \x1b[34;40mB\x1b[0m\n\n";
+        std::cout << "\t\t\t  \x1b[31;1mDödas v" << VERSION << "\t\tFLAK-ZOSO " << DATE << "\x1b[0m\n\n";
+    #elif defined(_WIN32)
+        std::cout << "\x1b]2;de dodas angrepp\x07"; // Set window title
+        std::cout << "\t\t\t\t\t\x1b[3m  Dodas\x1b[0m\n\t\t\t\t\x1b[3mYou better not fuck with \x1b[34;40mB\x1b[0m\n\n";
+        std::cout << "\t\t\t  \x1b[31;1mDodas v" << VERSION << "\t\tFLAK-ZOSO " << DATE << "\x1b[0m\n\n";
+    #endif
 
     std::cout << "\t\thttps://github.com/Lioydiano/Dodas?tab=readme-ov-file#how-to-play\n\n";
     std::cout << "\t\t\t\t- '\x1b[35mQ\x1b[0m' to \x1b[3mquit\x1b[0m\n";
