@@ -169,10 +169,25 @@ int main(int argc, char** argv) {
             int n, genre;
             #ifdef __APPLE__
             while (!end) {
-                n = rand() % tracks + 1;
+                genre = genresDistribution(rng);
+                n = (rand() % genresSize[genre]) + 1;
+                std::string track;
+                switch (genre) {
+                    case 1:
+                        track = "MH" + std::to_string(n);
+                        break;
+                    case 2:
+                        track = "ML" + std::to_string(n);
+                        break;
+                    case 3:
+                        track = "P" + std::to_string(n);
+                        break;
+                    default:
+                        break;
+                }
                 try {
                     char buf[1024];
-                    snprintf(buf, 1024, "afplay \"audio/B%d.mp3\"", n);
+                    snprintf(buf, 1024, "afplay \"audio/%s.mp3\"", track);
                     system(buf);
                 } catch (std::exception& e) {
                     return; // If the music can't be played, the thread ends
