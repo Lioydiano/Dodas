@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
                 }
                 try {
                     char buf[1024];
-                    snprintf(buf, 1024, "afplay \"audio/%s.mp3\"", track);
+                    snprintf(buf, 1024, "afplay \"audio/%s.mp3\"", track.c_str());
                     system(buf);
                 } catch (std::exception& e) {
                     return; // If the music can't be played, the thread ends
