@@ -222,15 +222,26 @@ int main(int argc, char** argv) {
             #elif __linux__
             while (!end) {
                 genre = genresDistribution(rng);
-                debug << "Genre: " << genre << std::endl;
+                // debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize[genre]) + 1;
-                debug << "n: " << n << std::endl;
-                std::string track = "audio/" + genres[genre] + std::to_string(n) + ".ogg";
-                debug << "track: " << track << std::endl;
+                // debug << "n: " << n << std::endl;
+                std::string track;
+                switch (genre) {
+                    case 1:
+                        track = "audio/MH" + std::to_string(n) + ".wav";
+                        break;
+                    case 2:
+                        track = "audio/ML" + std::to_string(n) + ".wav";
+                        break;
+                    case 3:
+                        track = "audio/P" + std::to_string(n) + ".wav";
+                        break;
+                    default:
+                        break;
+                }
                 try {
                     system(("canberra-gtk-play -f " + track).c_str());
-                    debug << "After canberra-gtk-play" << std::endl;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    // debug << "After canberra-gtk-play" << std::endl;
                 } catch (std::exception& e) {
                     debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
