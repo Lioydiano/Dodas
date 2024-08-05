@@ -160,10 +160,13 @@ int main(int argc, char** argv) {
     });
     std::thread music_th;
     if (music) {
-        const unsigned tracks = 2; // The number of tracks in the audio folder
+        int genresSize[] = {4, 4, 4}; // The number of tracks for each genre
+        std::vector<float> genresProb = {0.1f, 0.6f, 0.3f}; // The probability of each genre
+        std::discrete_distribution<int> genresDistribution(genresProb.begin(), genresProb.end());
+        std::vector<std::string> genres = {"", "MH", "ML", "P"}; // The genres of the music
         const int length[] = {16, 16};
         music_th = std::thread([&]() {
-            int n;
+            int n, genre;
             #ifdef __APPLE__
             while (!end) {
                 n = rand() % tracks + 1;
@@ -218,11 +221,16 @@ int main(int argc, char** argv) {
             }
             #elif __linux__
             while (!end) {
-                n = (rand() % tracks) + 1;
-                // debug << "audio/B" << n << ".ogg" << std::endl;
+                genre = genresDistribution(rng);
+                debug << "Genre: " << genre << std::endl;
+                n = (rand() % genresSize[genre]) + 1;
+                debug << "n: " << n << std::endl;
+                std::string track = "audio/" + genres[genre] + std::to_string(n) + ".ogg";
+                debug << "track: " << track << std::endl;
                 try {
-                    system(("canberra-gtk-play -f audio/B" + std::to_string(n) + ".ogg").c_str());
-                    // debug << "After canberra-gtk-play" << std::endl;
+                    system(("canberra-gtk-play -f " + track).c_str());
+                    debug << "After canberra-gtk-play" << std::endl;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 } catch (std::exception& e) {
                     debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
