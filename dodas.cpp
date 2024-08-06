@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
     std::thread music_th;
     if (music) {
         int genresSize[] = {4, 4, 4}; // The number of tracks for each genre
-        std::vector<float> genresProb = {0.1f, 0.6f, 0.3f}; // The probability of each genre
+        std::vector<int> genresProb = {3, 6, 1}; // The probability of each genre
         std::discrete_distribution<int> genresDistribution(genresProb.begin(), genresProb.end());
         std::vector<std::string> genres = {"", "MH", "ML", "P"}; // The genres of the music
         const int length[] = {16, 16};
@@ -169,8 +169,12 @@ int main(int argc, char** argv) {
             int n, genre;
             #ifdef __APPLE__
             while (!end) {
-                genre = genresDistribution(rng);
+                do {
+                    genre = genresDistribution(rng);
+                } while (genre == 0);
+                debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize[genre]) + 1;
+                debug << "n: " << n << std::endl;
                 std::string track;
                 switch (genre) {
                     case 1:
@@ -185,6 +189,7 @@ int main(int argc, char** argv) {
                     default:
                         break;
                 }
+                debug << "Playing " << track << std::endl;
                 try {
                     char buf[1024];
                     snprintf(buf, 1024, "afplay \"audio/%s.mp3\"", track.c_str());
@@ -243,13 +248,13 @@ int main(int argc, char** argv) {
                 std::string track;
                 switch (genre) {
                     case 1:
-                        track = "audio/MH" + std::to_string(n) + ".wav";
+                        track = "audio/MH" + std::to_string(n) + ".ogg";
                         break;
                     case 2:
-                        track = "audio/ML" + std::to_string(n) + ".wav";
+                        track = "audio/ML" + std::to_string(n) + ".ogg";
                         break;
                     case 3:
-                        track = "audio/P" + std::to_string(n) + ".wav";
+                        track = "audio/P" + std::to_string(n) + ".ogg";
                         break;
                     default:
                         break;
