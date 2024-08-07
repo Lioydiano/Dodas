@@ -168,10 +168,14 @@ int main(int argc, char** argv) {
         music_th = std::thread([&]() {
             int n, genre;
             #ifdef __APPLE__
+            std::vector<int> extendedProb;
+            for (unsigned i=0; i<genresProb.size(); i++) {
+                for (unsigned j=0; j<genresProb[i]; j++) {
+                    extendedProb.push_back(i+1);
+                }
+            }
             while (!end) {
-                do {
-                    genre = genresDistribution(rng);
-                } while (genre == 0);
+                genre = extendedProb[rand() % extendedProb.size()];
                 debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize[genre]) + 1;
                 debug << "n: " << n << std::endl;
