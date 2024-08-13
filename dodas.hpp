@@ -19,6 +19,8 @@
 #define VERSION "0.5.0"
 #define DATE "2024/07/27"
 
+#define WIN_API_MUSIC_DELAY 250
+
 void printIntro();
 
 enum Type {

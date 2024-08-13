@@ -236,7 +236,9 @@ int main(int argc, char** argv) {
                     mciSendString((LPCSTR)("play audio/" + track + ".wav").c_str(), NULL, 0, NULL);
                     debug << "After PlaySound" << std::endl;
                     int wait = length[genre][n];
-                    std::this_thread::sleep_for(std::chrono::seconds(wait));
+                    wait *= 1000;
+                    wait -= WIN_API_MUSIC_DELAY; // Some time is wasted in API calls, so we have to compensate for that
+                    std::this_thread::sleep_for(std::chrono::milliseconds(wait));
                     debug << "Already slept for " << wait << " seconds" << std::endl;
                 } catch (std::exception& e) {
                     debug << "Exception" << std::endl;
