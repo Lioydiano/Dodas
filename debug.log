@@ -1,8 +1,5 @@
 Before music thread
 Frame: 0
-genres[0]: F
-genres[1]: MH
-genres[2]: ML
 i: 1
 genresSize[i]: 4
 i: 1, j: 0
@@ -20,7 +17,7 @@ After adding MH2
 i: 1, j: 2
 genres[i]: MH
 genres[i-1]: F
-genres[i-1] + std::to_string(j+1): MH3
+genres[i-1] + std::to_stgenres[i-1] + std::to_string(j+1): MH3
 Adding MH3
 After adding MH3
 i: 1, j: 3
@@ -28,7 +25,6 @@ genres[i]: MH
 genres[i-1]: F
 genres[i-1] + std::to_string(j+1): MH4
 Adding MH4
-Frame: 1
 After adding MH4
 i: 2
 genresSize[i]: 4
@@ -64,6 +60,8 @@ genres[i-1]: ML
 genres[i-1] + std::to_string(j+1): P1
 Adding P1
 After adding P1
+After adding P1
+Frame: 2
 i: 3, j: 1
 genres[i]: P
 genres[i-1]: ML
@@ -75,7 +73,6 @@ genres[i]: P
 genres[i-1]: ML
 genres[i-1] + std::to_string(j+1): P3
 Adding P3
-Frame: 2
 After adding P3
 i: 3, j: 3
 genres[i]: P
@@ -83,6 +80,7 @@ genres[i-1]: ML
 genres[i-1] + std::to_string(j+1): P4
 Adding P4
 After adding P4
+Before genre
 Genre: 2
 n: 2
 Playing ML2
@@ -94,8 +92,8 @@ Frame: 7
 Frame: 8
 Frame: 9
 Frame: 10
-After PlaySound
 Frame: 11
+After PlaySound
 Frame: 12
 Frame: 13
 Frame: 14
@@ -149,17 +147,12 @@ Frame: 61
 Frame: 62
 Frame: 63
 Frame: 64
+Frame: 65
 Already slept for 6 seconds
+Before genre
 Genre: 2
 n: 4
 Playing ML4
-Playing ML4
-Frame: 65
-After PlaySound
-Already slept for 0 seconds
-Genre: 2
-n: 3
-Playing ML3
 After PlaySound
 Frame: 66
 Frame: 67
@@ -214,13 +207,14 @@ Frame: 115
 Frame: 116
 Frame: 117
 Frame: 118
-Already slept for 6 seconds
-Genre: 2
-n: 1
-Playing ML1
-After PlaySound
 Frame: 119
 Frame: 120
+Already slept for 6 seconds
+Before genre
+Genre: 2
+n: 3
+Playing ML3
+After PlaySound
 Frame: 121
 Frame: 122
 Frame: 123
@@ -272,15 +266,16 @@ Frame: 168
 Frame: 169
 Frame: 170
 Frame: 171
-Already slept for 6 seconds
-Genre: 2
-n: 2
-Playing ML2
 Frame: 172
 Frame: 173
-After PlaySound
 Frame: 174
 Frame: 175
+Already slept for 6 seconds
+Before genre
+Genre: 2
+n: 1
+Playing ML1
+After PlaySound
 Frame: 176
 Frame: 177
 Frame: 178
@@ -309,4 +304,243 @@ Frame: 200
 Frame: 201
 Frame: 202
 Frame: 203
+Frame: 204
+Frame: 205
+Frame: 206
+Frame: 207
+Frame: 208
+Frame: 209
+Frame: 210
+Frame: 211
+Already slept for 4 seconds
+Before genre
+Genre: 2
+n: 2
+Playing ML2
+After PlaySound
+Frame: 212
+Frame: 213
+Frame: 214
+Frame: 215
+Frame: 216
+Frame: 217
+Frame: 218
+Frame: 219
+Frame: 220
+Frame: 221
+Frame: 222
+Frame: 223
+Frame: 224
+Frame: 225
+Frame: 226
+Frame: 227
+Frame: 228
+Frame: 229
+Frame: 230
+Frame: 231
+Frame: 232
+Frame: 233
+Frame: 234
+Frame: 235
+Frame: 236
+Frame: 237
+Frame: 238
+Frame: 239
+Frame: 240
+Frame: 241
+Frame: 242
+Frame: 243
+Frame: 244
+Frame: 245
+Frame: 246
+Frame: 247
+Frame: 248
+Frame: 249
+Frame: 250
+Frame: 251
+Frame: 252
+Frame: 253
+Frame: 254
+Frame: 255
+Frame: 256
+Frame: 257
+Frame: 258
+Frame: 259
+Frame: 260
+Frame: 261
+Frame: 262
+Frame: 263
+Frame: 264
+Frame: 265
+Already slept for 6 seconds
+Before genre
+Genre: 2
+n: 1
+Playing ML1
+Frame: 266
+After PlaySound
+Frame: 267
+Frame: 268
+Frame: 269
+Frame: 270
+Frame: 271
+Frame: 272
+Frame: 273
+Frame: 274
+Frame: 275
+Frame: 276
+Frame: 277
+Frame: 278
+Frame: 279
+Frame: 280
+Frame: 281
+Frame: 282
+Frame: 283
+Frame: 284
+Frame: 285
+Frame: 286
+Frame: 287
+Frame: 288
+Frame: 289
+Frame: 290
+Frame: 291
+Frame: 292
+Frame: 293
+Frame: 294
+Frame: 295
+Frame: 296
+Frame: 297
+Frame: 298
+Frame: 299
+Frame: 300
+Frame: 301
+Frame: 302
+Already slept for 4 seconds
+Before genre
+Genre: 2
+n: 3
+Playing ML3
+Frame: 303
+After PlaySound
+Frame: 304
+Frame: 305
+Frame: 306
+Frame: 307
+Frame: 308
+Frame: 309
+Frame: 310
+Frame: 311
+Frame: 312
+Frame: 313
+Frame: 314
+Frame: 315
+Frame: 316
+Frame: 317
+Frame: 318
+Frame: 319
+Frame: 320
+Frame: 321
+Frame: 322
+Frame: 323
+Frame: 324
+Frame: 325
+Frame: 326
+Frame: 327
+Frame: 328
+Frame: 329
+Frame: 330
+Frame: 331
+Frame: 332
+Frame: 333
+Frame: 334
+Frame: 335
+Frame: 336
+Frame: 337
+Frame: 338
+Frame: 339
+Frame: 340
+Frame: 341
+Frame: 342
+Frame: 343
+Frame: 344
+Frame: 345
+Frame: 346
+Frame: 347
+Frame: 348
+Frame: 349
+Frame: 350
+Frame: 351
+Frame: 352
+Frame: 353
+Frame: 354
+Frame: 355
+Frame: 356
+Frame: 357
+Already slept for 6 seconds
+Before genre
+Genre: 2
+n: 3
+Playing ML3
+After PlaySound
+Frame: 358
+Frame: 359
+Frame: 360
+Frame: 361
+Frame: 362
+Frame: 363
+Frame: 364
+Frame: 365
+Frame: 366
+Frame: 367
+Frame: 368
+Frame: 369
+Frame: 370
+Frame: 371
+Frame: 372
+Frame: 373
+Frame: 374
+Frame: 375
+Frame: 376
+Frame: 377
+Frame: 378
+Frame: 379
+Frame: 380
+Frame: 381
+Frame: 382
+Frame: 383
+Frame: 384
+Frame: 385
+Frame: 386
+Frame: 387
+Frame: 388
+Frame: 389
+Frame: 390
+Frame: 391
+Frame: 392
+Frame: 393
+Frame: 394
+Frame: 395
+Frame: 396
+Frame: 397
+Frame: 398
+Frame: 399
+Frame: 400
+Frame: 401
+Frame: 402
+Frame: 403
+Frame: 404
+Frame: 405
+Frame: 406
+Frame: 407
+Frame: 408
+Frame: 409
+Frame: 410
+Frame: 411
+Already slept for 6 seconds
+Before genre
+Genre: 2
+n: 3
+Playing ML3
+Frame: 412
+After PlaySound
 Already slept for 6 seconds

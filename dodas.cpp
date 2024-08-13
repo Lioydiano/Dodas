@@ -162,7 +162,6 @@ int main(int argc, char** argv) {
     if (music) {
         const int genresProbSize = 3; // The number of genres
         int genresProb[] = {3, 6, 1}; // The probability of each genre
-        const int genresSizeSize_ = 4; // The number of genres
         int genresSize_[] = {0, 4, 4, 4}; // The number of tracks for each genre
         std::discrete_distribution<int> genresDistribution(genresProb, genresProb + genresProbSize);
         std::string genres[] = {"F", "MH", "ML", "P"}; // The genres of the music
@@ -173,9 +172,9 @@ int main(int argc, char** argv) {
         };
         int length[4][5] = {
             {0, 0, 0, 0, 0},
-            {10, 16, 16, 8, 0},
-            {4, 6, 6, 6, 0},
-            {4, 8, 6, 6, 0}
+            {0, 10, 16, 16, 8},
+            {0, 4, 6, 6, 6},
+            {0, 4, 8, 6, 6}
         };
         debug << "Before music thread" << std::endl;
         music_th = std::thread([&]() {
@@ -219,24 +218,8 @@ int main(int argc, char** argv) {
                 }
             }
             #elif _WIN32
-            debug << "genres[0]: " << genres[0] << std::endl;
-            debug << "genres[1]: " << genres[1] << std::endl;
-            debug << "genres[2]: " << genres[2] << std::endl;
-            for (int i=1; i<(int)genresSizeSize_; i++) {
-                debug << "i: " << i << std::endl;
-                debug << "genresSize[i]: " << genresSize_[i] << std::endl;
-                for (int j=0; j<(int)genresSize_[i]; j++) {
-                    debug << "i: " << i << ", j: " << j << std::endl;
-                    debug << "genres[i]: " << genres[i] << std::endl;
-                    debug << "genres[i-1]: " << genres[i-1] << std::endl;
-                    debug << "genres[i-1] + std::to_string(j+1): " << genres[i] + std::to_string(j+1) << std::endl;
-                    std::string track = genres[i] + std::to_string(j+1);
-                    debug << "Adding " << track << std::endl;
-                    mciSendString((LPCSTR)("open audio/" + track + ".wav type waveaudio alias " + track).c_str(), NULL, 0, NULL);
-                    debug << "After adding " << track << std::endl;
-                }
-            }
             while (!end) {
+                debug << "Before genre" << std::endl;
                 genre = genresDistribution(rng);
                 debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize_[genre]) + 1;
@@ -250,12 +233,13 @@ int main(int argc, char** argv) {
                     // debug << "Before PlaySound" << std::endl;
                     // PlaySound(TEXT(track_), NULL, SND_ASYNC);
                     // mciSendString(track_, NULL, 0, NULL);
-                    mciSendString((LPCSTR)("play " + track).c_str(), NULL, 0, NULL);
+                    mciSendString((LPCSTR)("play audio/" + track + ".wav").c_str(), NULL, 0, NULL);
                     debug << "After PlaySound" << std::endl;
                     int wait = length[genre][n];
                     std::this_thread::sleep_for(std::chrono::seconds(wait));
                     debug << "Already slept for " << wait << " seconds" << std::endl;
                 } catch (std::exception& e) {
+                    debug << "Exception" << std::endl;
                     debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
                 }
@@ -263,7 +247,7 @@ int main(int argc, char** argv) {
                     debug << "Pausing" << std::endl;
                     PlaySound(NULL, 0, 0);
                     debug << "Paused" << std::endl;
-                    break;
+                    // break;
                 }
                 while (pause_) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
