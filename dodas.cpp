@@ -160,16 +160,42 @@ int main(int argc, char** argv) {
     });
     std::thread music_th;
     if (music) {
-        const unsigned tracks = 2; // The number of tracks in the audio folder
-        const int length[] = {16, 16};
+        const int genresProbSize = 3; // The number of genres
+        int genresProb[] = {3, 6, 1}; // The probability of each genre
+        int genresSize_[] = {0, 4, 4, 4}; // The number of tracks for each genre
+        std::discrete_distribution<int> genresDistribution(genresProb, genresProb + genresProbSize);
+        std::string genres[] = {"F", "MH", "ML", "P"}; // The genres of the music
+        std::unordered_map<std::string, int> length_ = { // The length of each track
+            {"MH1", 10}, {"MH2", 16}, {"MH3", 16}, {"MH4", 8},
+            {"ML1", 4}, {"ML2", 6}, {"ML3", 6}, {"ML4", 6},
+            {"P1", 4}, {"P2", 8}, {"P3", 6}, {"P4", 6}
+        };
+        int length[4][5] = {
+            {0, 0, 0, 0, 0},
+            {0, 10, 16, 16, 8},
+            {0, 4, 6, 6, 6},
+            {0, 4, 8, 6, 6}
+        };
+        debug << "Before music thread" << std::endl;
         music_th = std::thread([&]() {
-            int n;
+            int n, genre;
             #ifdef __APPLE__
+            std::vector<int> extendedProb;
+            for (unsigned i=0; i<genresProbSize; i++) {
+                for (unsigned j=0; j<genresProb[i]; j++) {
+                    extendedProb.push_back(i+1);
+                }
+            }
             while (!end) {
-                n = rand() % tracks + 1;
+                genre = extendedProb[rand() % extendedProb.size()];
+                debug << "Genre: " << genre << std::endl;
+                n = (rand() % genresSize[genre]) + 1;
+                debug << "n: " << n << std::endl;
+                std::string track = genres[genre] + std::to_string(n);
+                debug << "Playing " << track << std::endl;
                 try {
                     char buf[1024];
-                    snprintf(buf, 1024, "afplay \"audio/B%d.mp3\"", n);
+                    snprintf(buf, 1024, "afplay \"audio/%s.mp3\"", track.c_str());
                     system(buf);
                 } catch (std::exception& e) {
                     return; // If the music can't be played, the thread ends
@@ -179,30 +205,23 @@ int main(int argc, char** argv) {
                 }
             }
             #elif _WIN32
-            for (unsigned i=0; i<tracks; i++) {
-                debug << "audio/B" << i+1 << ".wav" << std::endl;
-                std::string track = "audio/B" + std::to_string(i+1) + ".wav";
-                debug << track << std::endl;
-                // LPCSTR track_ = track.c_str();
-                debug << "Before mciSendString" << std::endl;
-                mciSendString((LPCSTR)("open " + track + " type waveaudio alias B" + std::to_string(i+1)).c_str(), NULL, 0, NULL);
-                debug << "After mciSendString" << std::endl;
-            }
             while (!end) {
-                n = rand() % tracks + 1;
+                debug << "Before genre" << std::endl;
+                genre = genresDistribution(rng);
+                debug << "Genre: " << genre << std::endl;
+                n = (rand() % genresSize_[genre]) + 1;
+                debug << "n: " << n << std::endl;
+                std::string track = genres[genre] + std::to_string(n);
                 try {
-                    debug << "audio/B" << n << ".wav" << std::endl;
-                    // std::string track = "\"audio/B" + std::to_string(n) + ".wav\"";
-                    // debug << track << std::endl;
-                    // LPCSTR track_ = track.c_str();
-                    // debug << "Before PlaySound" << std::endl;
-                    // PlaySound(TEXT(track_), NULL, SND_ASYNC);
-                    // mciSendString(track_, NULL, 0, NULL);
-                    mciSendString((LPCSTR)("play B" + std::to_string(n)).c_str(), NULL, 0, NULL);
+                    mciSendString((LPCSTR)("play audio/" + track + ".wav").c_str(), NULL, 0, NULL);
                     debug << "After PlaySound" << std::endl;
-                    std::this_thread::sleep_for(std::chrono::seconds(length[n-1]));
-                    debug << "Already slept for length[" << n-1 << "] = " << length[n-1] << " seconds" << std::endl;
+                    int wait = length[genre][n];
+                    wait *= 1000;
+                    wait -= WIN_API_MUSIC_DELAY; // Some time is wasted in API calls, so we have to compensate for that
+                    std::this_thread::sleep_for(std::chrono::milliseconds(wait));
+                    debug << "Already slept for " << wait << " seconds" << std::endl;
                 } catch (std::exception& e) {
+                    debug << "Exception" << std::endl;
                     debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
                 }
@@ -210,7 +229,7 @@ int main(int argc, char** argv) {
                     debug << "Pausing" << std::endl;
                     PlaySound(NULL, 0, 0);
                     debug << "Paused" << std::endl;
-                    break;
+                    // break;
                 }
                 while (pause_) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -218,10 +237,26 @@ int main(int argc, char** argv) {
             }
             #elif __linux__
             while (!end) {
-                n = (rand() % tracks) + 1;
-                // debug << "audio/B" << n << ".ogg" << std::endl;
+                genre = genresDistribution(rng);
+                // debug << "Genre: " << genre << std::endl;
+                n = (rand() % genresSize[genre]) + 1;
+                // debug << "n: " << n << std::endl;
+                std::string track = ((std::string)"audio/") + genres[genre] + std::to_string(n) + (std::string)".ogg";
+                // switch (genre) {
+                //     case 1:
+                //         track = "audio/MH" + std::to_string(n) + ".ogg";
+                //         break;
+                //     case 2:
+                //         track = "audio/ML" + std::to_string(n) + ".ogg";
+                //         break;
+                //     case 3:
+                //         track = "audio/P" + std::to_string(n) + ".ogg";
+                //         break;
+                //     default:
+                //         break;
+                // }
                 try {
-                    system(("canberra-gtk-play -f audio/B" + std::to_string(n) + ".ogg").c_str());
+                    system(("canberra-gtk-play -f " + track).c_str());
                     // debug << "After canberra-gtk-play" << std::endl;
                 } catch (std::exception& e) {
                     debug << e.what() << std::endl;

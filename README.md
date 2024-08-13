@@ -1,4 +1,5 @@
 # Dodas
+
 Dodas stands for *"de dödas angrepp"*, literally *"attack of the dead"* and is a terminal videogame.
 
 Dodas is written in C++ and uses the [`Sista`](https://github.com/Lioydiano/Dodas/blob/b32347f3daeb863757ac8ba256a22257d2bd6932/dodas.cpp#L256) library for terminal graphics.
@@ -63,7 +64,7 @@ dodas
 
 If you want your record to be considered, you must run `./dodas` with no `-U` flag and without editing constants such as `START_AMMONITION`.
 
-If you want the game to be pausable, you must run `./dodas -U` or `./dodas -unofficial`.
+If you want the game to be pausable without the number of elapsed frames being incremented, you must run `./dodas -U` or `./dodas -unofficial` and this will make an eventual record not be considered.
 
 If you don't want the music to be played, you must run `./dodas -M` or `./dodas --music-off`.
 
@@ -174,7 +175,7 @@ Despite not being intelligent in any way, her movements are unpredictable.
 - Luca Corradin for the idea of the game
 - Francesco Corradin for beta testing and suggestions
 - FLAK-ZOSO for writing the code
-- Il Pensionato Sentenzioso ([Karmolupe](https://karmolupe.bandcamp.com/)) for the music, still in development
+- Il Pensionato Sentenzioso ([Karmolupe](https://karmolupe.bandcamp.com/)) for the music
 
 # Records
 
