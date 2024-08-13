@@ -166,10 +166,16 @@ int main(int argc, char** argv) {
         int genresSize_[] = {0, 4, 4, 4}; // The number of tracks for each genre
         std::discrete_distribution<int> genresDistribution(genresProb, genresProb + genresProbSize);
         std::string genres[] = {"F", "MH", "ML", "P"}; // The genres of the music
-        std::unordered_map<std::string, int> length = { // The length of each track
+        std::unordered_map<std::string, int> length_ = { // The length of each track
             {"MH1", 10}, {"MH2", 16}, {"MH3", 16}, {"MH4", 8},
             {"ML1", 4}, {"ML2", 6}, {"ML3", 6}, {"ML4", 6},
             {"P1", 4}, {"P2", 8}, {"P3", 6}, {"P4", 6}
+        };
+        int length[4][5] = {
+            {0, 0, 0, 0, 0},
+            {10, 16, 16, 8, 0},
+            {4, 6, 6, 6, 0},
+            {4, 8, 6, 6, 0}
         };
         debug << "Before music thread" << std::endl;
         music_th = std::thread([&]() {
@@ -232,9 +238,9 @@ int main(int argc, char** argv) {
             }
             while (!end) {
                 genre = genresDistribution(rng);
-                // debug << "Genre: " << genre << std::endl;
+                debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize_[genre]) + 1;
-                // debug << "n: " << n << std::endl;
+                debug << "n: " << n << std::endl;
                 std::string track = genres[genre] + std::to_string(n);
                 try {
                     debug << "Playing " << track << std::endl;
@@ -246,8 +252,9 @@ int main(int argc, char** argv) {
                     // mciSendString(track_, NULL, 0, NULL);
                     mciSendString((LPCSTR)("play " + track).c_str(), NULL, 0, NULL);
                     debug << "After PlaySound" << std::endl;
-                    std::this_thread::sleep_for(std::chrono::seconds(length[track]));
-                    debug << "Already slept for length[" << track << "] = " << length[track] << " seconds" << std::endl;
+                    int wait = length[genre][n];
+                    std::this_thread::sleep_for(std::chrono::seconds(wait));
+                    debug << "Already slept for " << wait << " seconds" << std::endl;
                 } catch (std::exception& e) {
                     debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
