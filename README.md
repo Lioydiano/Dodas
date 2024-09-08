@@ -175,7 +175,7 @@ Despite not being intelligent in any way, her movements are unpredictable.
 - Luca Corradin for the idea of the game
 - Francesco Corradin for beta testing and suggestions
 - FLAK-ZOSO for writing the code
-- Il Pensionato Sentenzioso ([Karmolupe](https://karmolupe.bandcamp.com/)) for the music
+- Il Pensionato Sentenzioso for the music
 
 # Records
 
