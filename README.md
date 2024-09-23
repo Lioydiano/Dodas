@@ -62,9 +62,13 @@ dodas
 
 ### Options
 
+- `-U` or `--unofficial` to run the game in unofficial mode
+
 If you want your record to be considered, you must run `./dodas` with no `-U` flag and without editing constants such as `START_AMMONITION`.
 
 If you want the game to be pausable without the number of elapsed frames being incremented, you must run `./dodas -U` or `./dodas -unofficial` and this will make an eventual record not be considered.
+
+- `-M` or `--music-off` to run the game without music
 
 If you don't want the music to be played, you must run `./dodas -M` or `./dodas --music-off`.
 
@@ -74,7 +78,15 @@ If you want the music to be played correctly, you may need some libraries, see t
 - MacOS: [`afplay`](https://ss64.com/mac/afplay.html) which is included in the MacOS API
 - Windows: `PlaySound` from `winmm.dll` which is included in the Windows API
 
-Also, you must have the `music` folder in the same directory as the `dodas` executable.
+Also, you must have the `audio` folder in the same directory as the `dodas` executable.
+
+- `-E` or `--endless` to run the game in endless mode
+
+The endless mode is a mode where the game never ends, and you can play as long as you want without worrying about the queen, whose health is infinite.
+
+- `-H` or `--hardcore` to run the game in hardcore mode
+
+The zombies will keep spawning and their spawn rate will increase over time.
 
 ## How to play
 

@@ -5,7 +5,9 @@
 #include <thread>
 #include <chrono>
 
+#if DEBUG
 std::ofstream debug("debug.log");
+#endif
 
 sista::SwappableField* field;
 
@@ -50,6 +52,8 @@ int main(int argc, char** argv) {
     );
     bool unofficial = false;
     bool music = true;
+    bool endless = false;
+    bool hardcore = false;
     if (argc > 1) {
         for (unsigned short i=1; i<argc; i++) {
             // if argv contains "--unofficial" or "-u" then the game will be played in the unofficial mode
@@ -66,6 +70,14 @@ int main(int argc, char** argv) {
             if (std::string(argv[i]) == "--music-off" || std::string(argv[i]) == "-m" || std::string(argv[i]) == "-M") {
                 // The music thread will be joined and the game will be played without music
                 music = false;
+            }
+            // if argv contains "--endless" or "-E" then the game will be played in the endless mode
+            if (std::string(argv[i]) == "--endless" || std::string(argv[i]) == "-e" || std::string(argv[i]) == "-E") {
+                endless = true;
+            }
+            // if argv contains "--hardcore" or "-H" then the game will be played in the hardcore mode
+            if (std::string(argv[i]) == "--hardcore" || std::string(argv[i]) == "-h" || std::string(argv[i]) == "-H") {
+                hardcore = true;
             }
         }
     }
@@ -176,7 +188,7 @@ int main(int argc, char** argv) {
             {0, 4, 6, 6, 6},
             {0, 4, 8, 6, 6}
         };
-        debug << "Before music thread" << std::endl;
+        // debug << "Before music thread" << std::endl;
         music_th = std::thread([&]() {
             int n, genre;
             #ifdef __APPLE__
@@ -188,11 +200,11 @@ int main(int argc, char** argv) {
             }
             while (!end) {
                 genre = extendedProb[rand() % extendedProb.size()];
-                debug << "Genre: " << genre << std::endl;
+                // debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize[genre]) + 1;
-                debug << "n: " << n << std::endl;
+                // debug << "n: " << n << std::endl;
                 std::string track = genres[genre] + std::to_string(n);
-                debug << "Playing " << track << std::endl;
+                // debug << "Playing " << track << std::endl;
                 try {
                     char buf[1024];
                     snprintf(buf, 1024, "afplay \"audio/%s.mp3\"", track.c_str());
@@ -206,29 +218,29 @@ int main(int argc, char** argv) {
             }
             #elif _WIN32
             while (!end) {
-                debug << "Before genre" << std::endl;
+                // debug << "Before genre" << std::endl;
                 genre = genresDistribution(rng);
-                debug << "Genre: " << genre << std::endl;
+                // debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize_[genre]) + 1;
-                debug << "n: " << n << std::endl;
+                // debug << "n: " << n << std::endl;
                 std::string track = genres[genre] + std::to_string(n);
                 try {
                     mciSendString((LPCSTR)("play audio/" + track + ".wav").c_str(), NULL, 0, NULL);
-                    debug << "After PlaySound" << std::endl;
+                    // debug << "After PlaySound" << std::endl;
                     int wait = length[genre][n];
                     wait *= 1000;
                     wait -= WIN_API_MUSIC_DELAY; // Some time is wasted in API calls, so we have to compensate for that
                     std::this_thread::sleep_for(std::chrono::milliseconds(wait));
-                    debug << "Already slept for " << wait << " seconds" << std::endl;
+                    // debug << "Already slept for " << wait << " seconds" << std::endl;
                 } catch (std::exception& e) {
-                    debug << "Exception" << std::endl;
-                    debug << e.what() << std::endl;
+                    // debug << "Exception" << std::endl;
+                    // debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
                 }
                 if (pause_) {
-                    debug << "Pausing" << std::endl;
+                    // debug << "Pausing" << std::endl;
                     PlaySound(NULL, 0, 0);
-                    debug << "Paused" << std::endl;
+                    // debug << "Paused" << std::endl;
                     // break;
                 }
                 while (pause_) {
@@ -239,27 +251,16 @@ int main(int argc, char** argv) {
             while (!end) {
                 genre = genresDistribution(rng);
                 // debug << "Genre: " << genre << std::endl;
-                n = (rand() % genresSize[genre]) + 1;
+                n = (rand() % genresSize_[genre]) + 1;
                 // debug << "n: " << n << std::endl;
                 std::string track = ((std::string)"audio/") + genres[genre] + std::to_string(n) + (std::string)".ogg";
-                // switch (genre) {
-                //     case 1:
-                //         track = "audio/MH" + std::to_string(n) + ".ogg";
-                //         break;
-                //     case 2:
-                //         track = "audio/ML" + std::to_string(n) + ".ogg";
-                //         break;
-                //     case 3:
-                //         track = "audio/P" + std::to_string(n) + ".ogg";
-                //         break;
-                //     default:
-                //         break;
-                // }
                 try {
                     system(("canberra-gtk-play -f " + track).c_str());
                     // debug << "After canberra-gtk-play" << std::endl;
                 } catch (std::exception& e) {
+                    #if DEBUG
                     debug << e.what() << std::endl;
+                    #endif
                     return; // If the music can't be played, the thread ends
                 }
                 while (pause_) {
@@ -280,7 +281,7 @@ int main(int argc, char** argv) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue; // So the game keeps increasing the frame counter, and the speedrun is affected by the pause
         }
-        debug << "Frame: " << i << std::endl;
+        // debug << "Frame: " << i << std::endl;
         #if DEBUG
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
             // debug << "\tBullet " << j << ": " << Bullet::bullets[j] << std::endl;
@@ -420,6 +421,32 @@ int main(int argc, char** argv) {
             }
         }
         // debug << "\tAfter zombies spawning" << std::endl;
+        if (hardcore) {
+            // The point of the game is to survive as long as possible, so the spawning rate of the enemies increases over time
+            // The hordes of enemies are spawned every 500 frames, but the number of enemies in each horde increases over time
+            if (i % 500 == 250) {
+                for (unsigned short j=0; j<i/100; j++) {
+                    unsigned short y = rand() % 20;
+                    if (Queen::queen->getCoordinates().y != y) {
+                        Walker* walker = new Walker({y, 49});
+                        Walker::walkers.push_back(walker);
+                        field->addPrintPawn(walker);
+                    }
+                }
+                for (unsigned short j=0; j<i/200; j++) {
+                    unsigned short y = rand() % 20;
+                    if (Queen::queen->getCoordinates().y != y) {
+                        Zombie* zombie = new Zombie({y, 49});
+                        Zombie::zombies.push_back(zombie);
+                        field->addPrintPawn(zombie);
+                    }
+                }
+            }
+        }
+        if (endless) {
+            // The game is endless, so the queen regenerates life
+            Queen::queen->life = 9;
+        }
         Queen::queen->setSymbol('0' + Queen::queen->life);
         field->rePrintPawn(Queen::queen);
         if (i % 10 == 0) {

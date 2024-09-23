@@ -14,10 +14,10 @@
 
 #define START_AMMONITION 10
 
-#define DEBUG 1
+#define DEBUG 0
 #define INTRO 1
-#define VERSION "0.5.0"
-#define DATE "2024/07/27"
+#define VERSION "0.6.1"
+#define DATE "2024/09/23"
 
 #define WIN_API_MUSIC_DELAY 80
 
