@@ -442,6 +442,33 @@ int main(int argc, char** argv) {
                     }
                 }
             }
+            // Too many zombies increase the probability of segfaults, so every REPOPULATE frames we empty and then repopulate the field
+            if (i % REPOPULATE == REPOPULATE - 1) {
+                field->clear();
+                field->addPrintPawn(Player::player);
+                field->addPrintPawn(Queen::queen);
+                for (auto wall : Wall::walls) {
+                    field->addPrintPawn(wall);
+                }
+                for (auto zombie : Zombie::zombies) {
+                    field->addPrintPawn(zombie);
+                }
+                for (auto walker : Walker::walkers) {
+                    field->addPrintPawn(walker);
+                }
+                for (auto mine : Mine::mines) {
+                    field->addPrintPawn(mine);
+                }
+                for (auto cannon : Cannon::cannons) {
+                    field->addPrintPawn(cannon);
+                }
+                for (auto worker : Worker::workers) {
+                    field->addPrintPawn(worker);
+                }
+                for (auto bomber : Bomber::bombers) {
+                    field->addPrintPawn(bomber);
+                }
+            }
         }
         if (endless) {
             // The game is endless, so the queen regenerates life
@@ -485,6 +512,10 @@ int main(int argc, char** argv) {
                     std::find(Bomber::bombers.begin(), Bomber::bombers.end(), pawn) == Bomber::bombers.end() &&
                     pawn != Player::player && pawn != Queen::queen) {
                     coordinates.push_back(pawn->getCoordinates());
+                    #if DEBUG
+                    debug << "Erasing " << pawn << " at " << pawn->getCoordinates() << std::endl;
+                    debug << "\t" << typeid(*pawn).name() << std::endl;
+                    #endif
                 }
             }
         }
