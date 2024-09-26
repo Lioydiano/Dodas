@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
             while (!end) {
                 genre = extendedProb[rand() % extendedProb.size()];
                 // debug << "Genre: " << genre << std::endl;
-                n = (rand() % genresSize[genre]) + 1;
+                n = (rand() % genresSize_[genre]) + 1;
                 // debug << "n: " << n << std::endl;
                 std::string track = genres[genre] + std::to_string(n);
                 // debug << "Playing " << track << std::endl;
