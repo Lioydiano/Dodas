@@ -43,7 +43,7 @@ g++ -static include/sista/ANSI-Settings.cpp include/sista/border.cpp include/sis
 Also, in some cases you might need to specify `-std=c++17` which is the standard used in this project.
 
 ```bash
-g++ -std=c++17 -static include/sista/ANSI-Settings.cpp include/sista/border.cpp include/sista/coordinates.cpp include/sista/cursor.cpp include/sista/field.cpp include/sista/pawn.cpp dodas.cpp -o dodas 
+g++ -std=c++17 include/sista/ANSI-Settings.cpp include/sista/border.cpp include/sista/coordinates.cpp include/sista/cursor.cpp include/sista/field.cpp include/sista/pawn.cpp dodas.cpp -o dodas 
 ```
 
 ### Running
@@ -96,13 +96,11 @@ You are the red `$` symbol and you have to kill the `9` queen.
 
 The queen defends herself by spawning bold shooting `Z` zombies and walking `Z` zombies.
 
-The queen also spawns `=` walls to protect herself when hitted.
+The queen also spawns `=` walls to protect herself when hitten.
 
 You must kill the queen as fast as possible, because the zombies will keep spawning.
 
 ### Controls
-
-⚠️ sadly, on MacOS you must always press `enter` to send commands
 
 - `w`/`a`/`s`/`d` to move (up/left/down/right, uppercase `A`/`S`/`D` also work)
 - `Q` to quit (lowercase `q` won't work because it caused unintentional exits)

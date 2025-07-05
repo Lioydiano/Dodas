@@ -3,11 +3,16 @@
     #include <windows.h>
     #include <mmsystem.h>
     // #pragma comment(lib,"winmm.lib")
-#endif
-#ifdef _WIN32
     #include <conio.h>
+
+    void flushInput() {
+        // Flush the input buffer (discard data not read yet)
+        HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
+        FlushConsoleInputBuffer(hInput);
+    }
 #elif __APPLE__
     #include <termios.h>
+    #include <unistd.h>
 
     struct termios orig_termios;
     void term_echooff() {
@@ -16,9 +21,14 @@
         tcgetattr(0, &orig_termios);
 
         noecho = orig_termios;
-        noecho.c_lflag &= ~ECHO;
+        noecho.c_lflag &= ~(ECHO | ICANON);
 
         tcsetattr(0, TCSANOW, &noecho);
+    }
+
+    void flushInput() {
+        // Flush stdin (discard data not read yet)
+        tcflush(STDIN_FILENO, TCIFLUSH);
     }
 #elif __linux__    
     #include <unistd.h>
@@ -44,5 +54,10 @@
             perror("tcsetattr ~ICANON");
         // printf("%c\n", buf);
         return buf;
+    }
+
+    void flushInput() {
+        // Flush stdin (discard data not read yet)
+        tcflush(STDIN_FILENO, TCIFLUSH);
     }
 #endif

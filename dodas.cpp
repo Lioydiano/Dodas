@@ -529,7 +529,11 @@ int main(int argc, char** argv) {
         music_th.join();
     }
     th.join();
+    flushInput();
     cursor.set(52, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
+    #ifdef __APPLE__
+    tcsetattr(0, TCSANOW, &orig_termios);
+    #endif
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 }
 
