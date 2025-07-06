@@ -4,6 +4,7 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
+#include <mutex>
 
 #if DEBUG
 std::ofstream debug("debug.log");
@@ -27,6 +28,7 @@ std::bernoulli_distribution Zombie::distribution(ZOMBIE_MOVING_PROBABILITY);
 std::bernoulli_distribution Zombie::shootDistribution(ZOMBIE_SHOOTING_PROBABILITY);
 std::bernoulli_distribution Walker::distribution(WALKER_MOVING_PROBABILITY);
 sista::Cursor cursor;
+std::mutex inputOutputMutex;
 bool pause_ = false;
 bool end = false;
 
@@ -117,48 +119,75 @@ int main(int argc, char** argv) {
             #endif
             if (end) return;
             switch (input) {
-            case 'w':
+            case 'w': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->move(Direction::UP);
                 break;
-            case 'd': case 'D':
+            }
+            case 'd': case 'D': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->move(Direction::RIGHT);
                 break;
-            case 's': case 'S':
+            }
+            case 's': case 'S': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->move(Direction::DOWN);
                 break;
-            case 'a': case 'A':
+            }
+            case 'a': case 'A': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->move(Direction::LEFT);
                 break;
-            case 'j': case 'J':
+            }
+            case 'j': case 'J': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->shoot(Direction::LEFT);
                 break;
-            case 'k': case 'K':
+            }
+            case 'k': case 'K': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->shoot(Direction::DOWN);
                 break;
-            case 'l': case 'L':
+            }
+            case 'l': case 'L': {
                 Player::player->shoot(Direction::RIGHT);
                 break;
-            case 'i': case 'I':
+            }
+            case 'i': case 'I': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->shoot(Direction::UP);
                 break;
-            case 'p': case 'P': // "Projectile" or something
+            }
+            case 'p': case 'P': { // "Projectile" or something
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::BULLET;
                 break;
-            case 'm': case 'M':
+            }
+            case 'm': case 'M': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::MINE;
                 break;
-            case 'c': case 'C':
+            }
+            case 'c': case 'C': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::CANNON;
                 break;
-            case 'b': case 'B':
+            }
+            case 'b': case 'B': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::BOMBER;
                 break;
-            case 'W':
+            }
+            case 'W': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::WORKER;
                 break;
-            case '=': case '0':
+            }
+            case '=': case '0': {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::WALL;
                 break;
+            }
             case '.':
                 pause_ = !pause_;
                 break;
@@ -281,6 +310,8 @@ int main(int argc, char** argv) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue; // So the game keeps increasing the frame counter, and the speedrun is affected by the pause
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::lock_guard<std::mutex> lock(inputOutputMutex);
         // debug << "Frame: " << i << std::endl;
         #if DEBUG
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
@@ -493,7 +524,6 @@ int main(int argc, char** argv) {
             std::cout << START_AMMONITION; // The official run should show the starting ammonition
         }
         std::cout << std::flush;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         // At the end of the frame we check if in the Field there is any Entity which isn't in any of the lists
         std::vector<sista::Coordinates> coordinates;
