@@ -7,6 +7,11 @@
 *.o
 *.obj
 
+# Executable files
+*.exe
+*.out
+dodas
+
 # Precompiled Headers
 *.gch
 *.pch

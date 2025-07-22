@@ -16,8 +16,8 @@
 
 #define DEBUG 0
 #define INTRO 1
-#define VERSION "0.6.4"
-#define DATE "2025-07-06"
+#define VERSION "0.6.5"
+#define DATE "2025-07-22"
 
 #define WIN_API_MUSIC_DELAY 80
 #define REPOPULATE 127 // The number of frame before the whole sista::Field is emptied and repopulated
@@ -27,6 +27,7 @@ void printIntro();
 enum Type {
     PLAYER,
     WORKER,
+    ARMED_WORKER,
     CANNON,
     BOMBER,
     BULLET,
@@ -230,6 +231,22 @@ public:
     void explode();
 
     static void removeWalker(Walker*);
+};
+
+class ArmedWorker : public Entity { // Workers produce ammonition for the player, they have a certain production rate
+public:
+    static ANSI::Settings armedWorkerStyle;
+    static std::vector<ArmedWorker*> armedWorkers;
+    std::bernoulli_distribution distribution; // The worker produces an ammonition every productionRate frames, on average
+
+    ArmedWorker();
+    ArmedWorker(sista::Coordinates);
+    ArmedWorker(sista::Coordinates, unsigned short);
+
+    void produce();
+    void dodgeIfNeeded();
+
+    static void removeArmedWorker(ArmedWorker*);
 };
 
 void removeNullptrs(std::vector<Entity*>&);

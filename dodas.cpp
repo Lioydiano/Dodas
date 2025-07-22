@@ -19,6 +19,7 @@ std::vector<Walker*> Walker::walkers;
 std::vector<Wall*> Wall::walls;
 std::vector<Mine*> Mine::mines;
 std::vector<Cannon*> Cannon::cannons;
+std::vector<ArmedWorker*> ArmedWorker::armedWorkers;
 std::vector<Worker*> Worker::workers;
 std::vector<Bomber*> Bomber::bombers;
 Player* Player::player;
@@ -181,6 +182,11 @@ int main(int argc, char** argv) {
             case 'W': {
                 std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::WORKER;
+                break;
+            }
+            case 'u': case 'U' : {
+                std::lock_guard<std::mutex> lock(inputOutputMutex);
+                Player::player->weapon = Type::ARMED_WORKER;
                 break;
             }
             case '=': case '0': {
@@ -386,7 +392,7 @@ int main(int argc, char** argv) {
         for (auto mine : Mine::mines)
             mine->checkTrigger();
         // debug << "\tAfter mines" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Worker::workers);
+        // removeNullptrs((std::vector<Entity*>&)Worker::workers);        
         std::vector<std::vector<unsigned short>> workersPositions(20, std::vector<unsigned short>()); // workersPositions[y] = {x1, x2, x3, ...} where the workers are
         for (auto worker : Worker::workers) {
             workersPositions[worker->getCoordinates().y].push_back(worker->getCoordinates().x);
@@ -395,6 +401,12 @@ int main(int argc, char** argv) {
         }
         // debug << "\tAfter workers" << std::endl;
         // removeNullptrs((std::vector<Entity*>&)Cannon::cannons);
+        for (auto worker : ArmedWorker::armedWorkers) {
+            if (worker->distribution(rng))
+                worker->produce();
+            worker->dodgeIfNeeded();
+        }
+
         for (auto cannon : Cannon::cannons) {
             cannon->recomputeDistribution(workersPositions);
             if (cannon->distribution(rng))
@@ -496,6 +508,9 @@ int main(int argc, char** argv) {
                 for (auto worker : Worker::workers) {
                     field->addPrintPawn(worker);
                 }
+                for (auto worker : ArmedWorker::armedWorkers) {
+                    field->addPrintPawn(worker);
+                }
                 for (auto bomber : Bomber::bombers) {
                     field->addPrintPawn(bomber);
                 }
@@ -539,6 +554,7 @@ int main(int argc, char** argv) {
                     std::find(Mine::mines.begin(), Mine::mines.end(), pawn) == Mine::mines.end() &&
                     std::find(Cannon::cannons.begin(), Cannon::cannons.end(), pawn) == Cannon::cannons.end() &&
                     std::find(Worker::workers.begin(), Worker::workers.end(), pawn) == Worker::workers.end() &&
+                    std::find(ArmedWorker::armedWorkers.begin(), ArmedWorker::armedWorkers.end(), pawn) == ArmedWorker::armedWorkers.end() &&
                     std::find(Bomber::bombers.begin(), Bomber::bombers.end(), pawn) == Bomber::bombers.end() &&
                     pawn != Player::player && pawn != Queen::queen) {
                     coordinates.push_back(pawn->getCoordinates());
@@ -590,6 +606,7 @@ void printIntro() {
     std::cout << "\t\t\t\t- '\x1b[35mm\x1b[0m' to select mines\n";
     std::cout << "\t\t\t\t- '\x1b[35mc\x1b[0m' to select cannons\n";
     std::cout << "\t\t\t\t- '\x1b[35mW\x1b[0m' to select workers\n";
+    std::cout << "\t\t\t\t- '\x1b[35mU\x1b[0m' to select armed workers\n";
     std::cout << "\t\t\t\t- '\x1b[35m=\x1b[0m' or '\x1b[35m0\x1b[0m' to select walls\n";
     std::cout << "\t\t\t\t- '\x1b[35mb\x1b[0m' to select bombers\n\n";
 
@@ -765,6 +782,8 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
             Cannon::removeCannon((Cannon*)hitten);
         } else if (hitten->type == Type::WORKER) {
             Worker::removeWorker((Worker*)hitten);
+        } else if (hitten->type == Type::ARMED_WORKER) {
+            ArmedWorker::removeArmedWorker((ArmedWorker*)hitten);
         } else if (hitten->type == Type::BOMBER) {
             Bomber::removeBomber((Bomber*)hitten);
         }
@@ -837,6 +856,15 @@ void Player::shoot(Direction direction) {
         Player::player->ammonitions -= 5;
         Worker* newworker = new Worker(spawn, WORKER_PRODUCTION_PERIOD);
         Worker::workers.push_back(newworker);
+        field->addPrintPawn(newworker);
+        break;
+    }
+    case Type::ARMED_WORKER: {
+        if (Player::player->ammonitions < 8)
+            return;
+        Player::player->ammonitions -= 8;
+        ArmedWorker* newworker = new ArmedWorker(spawn, WORKER_PRODUCTION_PERIOD);
+        ArmedWorker::armedWorkers.push_back(newworker);
         field->addPrintPawn(newworker);
         break;
     }
@@ -1097,6 +1125,56 @@ void Worker::produce() {
     Player::player->ammonitions++;
 }
 
+ANSI::Settings ArmedWorker::armedWorkerStyle = {
+    ANSI::ForegroundColor::F_YELLOW,
+    ANSI::BackgroundColor::B_BLUE,
+    ANSI::Attribute::UNDERSCORE
+};
+void ArmedWorker::removeArmedWorker(ArmedWorker* worker) {
+    ArmedWorker::armedWorkers.erase(std::find(ArmedWorker::armedWorkers.begin(), ArmedWorker::armedWorkers.end(), worker));
+    field->erasePawn(worker);
+    delete worker;
+}
+ArmedWorker::ArmedWorker(sista::Coordinates coordinates, unsigned short productionRate) : Entity('W', coordinates, armedWorkerStyle, Type::ARMED_WORKER), distribution(std::bernoulli_distribution(1.0/productionRate)) {}
+ArmedWorker::ArmedWorker(sista::Coordinates coordinates) : Entity('W', coordinates, armedWorkerStyle, Type::ARMED_WORKER), distribution(std::bernoulli_distribution(1.0/WORKER_PRODUCTION_PERIOD)) {}
+ArmedWorker::ArmedWorker() : Entity('W', {0, 0}, armedWorkerStyle, Type::ARMED_WORKER), distribution(std::bernoulli_distribution(1.0/WORKER_PRODUCTION_PERIOD)) {}
+void ArmedWorker::produce() {
+    Player::player->ammonitions++;
+}
+void ArmedWorker::dodgeIfNeeded() {
+    sista::Coordinates target = this->coordinates + directionMap[Direction::RIGHT] * 3;
+    if (field->isOutOfBounds(target))
+        return;
+    if (field->isOccupied(target)) {
+        if (((Entity*)field->getPawn(target))->type == Type::ENEMYBULLET) {
+            if (Player::player->ammonitions >= 1) {
+                Player::player->ammonitions -= 1;
+                Wall* newwall = new Wall(this->coordinates + directionMap[Direction::RIGHT], 2);
+                Wall::walls.push_back(newwall);
+                field->addPrintPawn(newwall);
+            }
+            sista::Coordinates destination = this->coordinates + directionMap[Direction::UP];
+            if (field->isFree(destination)) {
+                field->movePawn(this, destination);
+            } else {
+                destination = this->coordinates + directionMap[Direction::DOWN];
+                if (field->isFree(destination)) {
+                    field->movePawn(this, destination);
+                } else {
+                    return;
+                }
+            }
+            
+            if (Player::player->ammonitions >= 1) {
+                Player::player->ammonitions--;
+                Bullet* newbullet = new Bullet(this->coordinates + directionMap[Direction::RIGHT], Direction::RIGHT);
+                Bullet::bullets.push_back(newbullet);
+                field->addPrintPawn(newbullet);
+            }
+        }
+    }
+}
+
 ANSI::Settings Bomber::bomberStyle = {
     ANSI::ForegroundColor::F_BLUE,
     ANSI::BackgroundColor::B_BLACK,
@@ -1258,6 +1336,8 @@ void Walker::move() { // Walkers mostly move horizontally because they only rare
         Cannon::removeCannon((Cannon*)neighbor);
     } else if (neighbor->type == Type::WORKER) {
         Worker::removeWorker((Worker*)neighbor);
+    } else if (neighbor->type == Type::ARMED_WORKER) {
+        ArmedWorker::removeArmedWorker((ArmedWorker*)neighbor);
     }
 }
 void Walker::explode() {
@@ -1294,6 +1374,8 @@ void Walker::explode() {
                 }
             } else if (neighbor->type == Type::WORKER) {
                 Worker::removeWorker((Worker*)neighbor);
+            } else if (neighbor->type == Type::ARMED_WORKER) {
+                ArmedWorker::removeArmedWorker((ArmedWorker*)neighbor);
             }
         }
     }
