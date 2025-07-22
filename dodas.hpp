@@ -16,7 +16,7 @@
 
 #define DEBUG 0
 #define INTRO 1
-#define VERSION "0.6.5"
+#define VERSION "0.7.0"
 #define DATE "2025-07-22"
 
 #define WIN_API_MUSIC_DELAY 80

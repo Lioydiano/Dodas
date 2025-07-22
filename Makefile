@@ -3,14 +3,19 @@ IMPLEMENTATIONS = include/sista/ANSI-Settings.cpp include/sista/border.cpp inclu
 
 UNAME := $(shell uname)
 STATIC_FLAG =
+WINMM_FLAG =
 ifeq ($(UNAME),Darwin)
     STATIC_FLAG =
 else
     STATIC_FLAG = -static
 endif
 
+ifeq ($(OS),Windows_NT)
+    WINMM_FLAG = -lwinmm
+endif
+
 all:
 	g++ -std=c++17 -Wall -g -c $(IMPLEMENTATIONS)
 	g++ -std=c++17 -Wall -g $(STATIC_FLAG) -c dodas.cpp
-	g++ -std=c++17 -Wall -g $(STATIC_FLAG) -o dodas dodas.o ANSI-Settings.o border.o coordinates.o cursor.o pawn.o field.o
+	g++ -std=c++17 -Wall -g $(STATIC_FLAG) -o dodas dodas.o ANSI-Settings.o border.o coordinates.o cursor.o pawn.o field.o $(WINMM_FLAG)
 	rm -f *.o
