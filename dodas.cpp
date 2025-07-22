@@ -1147,17 +1147,17 @@ void ArmedWorker::dodgeIfNeeded() {
         return;
     if (field->isOccupied(target)) {
         if (((Entity*)field->getPawn(target))->type == Type::ENEMYBULLET) {
-            if (Player::player->ammonitions >= 1) {
-                Player::player->ammonitions -= 1;
-                Wall* newwall = new Wall(this->coordinates + directionMap[Direction::RIGHT], 2);
-                Wall::walls.push_back(newwall);
-                field->addPrintPawn(newwall);
-            }
+            Wall* newwall = new Wall(this->coordinates + directionMap[Direction::RIGHT], 2);
+            Wall::walls.push_back(newwall);
+            field->addPrintPawn(newwall);
+
             sista::Coordinates destination = this->coordinates + directionMap[Direction::UP];
+            Direction moved = Direction::UP;
             if (field->isFree(destination)) {
                 field->movePawn(this, destination);
             } else {
                 destination = this->coordinates + directionMap[Direction::DOWN];
+                moved = Direction::DOWN;
                 if (field->isFree(destination)) {
                     field->movePawn(this, destination);
                 } else {
@@ -1165,11 +1165,13 @@ void ArmedWorker::dodgeIfNeeded() {
                 }
             }
             
-            if (Player::player->ammonitions >= 1) {
-                Player::player->ammonitions--;
-                Bullet* newbullet = new Bullet(this->coordinates + directionMap[Direction::RIGHT], Direction::RIGHT);
-                Bullet::bullets.push_back(newbullet);
-                field->addPrintPawn(newbullet);
+            Bullet* newbullet = new Bullet(this->coordinates + directionMap[Direction::RIGHT], Direction::RIGHT);
+            Bullet::bullets.push_back(newbullet);
+            field->addPrintPawn(newbullet);
+
+            destination = this->coordinates + directionMap[moved == Direction::UP ? Direction::DOWN : Direction::UP];
+            if (field->isFree(destination)) {
+                field->movePawn(this, destination);
             }
         }
     }
