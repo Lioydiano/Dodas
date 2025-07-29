@@ -1155,11 +1155,13 @@ void ArmedWorker::dodgeIfNeeded() {
             Direction moved = Direction::UP;
             if (field->isFree(destination)) {
                 field->movePawn(this, destination);
+                std::cout << std::flush;
             } else {
                 destination = this->coordinates + directionMap[Direction::DOWN];
                 moved = Direction::DOWN;
                 if (field->isFree(destination)) {
                     field->movePawn(this, destination);
+                    std::cout << std::flush;
                 } else {
                     return;
                 }
