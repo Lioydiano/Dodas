@@ -25,6 +25,7 @@ jobs:
           repository: FLAK-ZOSO/Sista
           path: Sista
           ref: main
+          fetch-depth: 1
 
       - name: Install Sista
         run: |
