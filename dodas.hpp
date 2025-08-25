@@ -1,4 +1,4 @@
-#include "include/sista/sista.hpp"
+#include <sista/sista.hpp>
 #include <unordered_map>
 #include <vector>
 #include <random>
@@ -16,8 +16,8 @@
 
 #define DEBUG 0
 #define INTRO 1
-#define VERSION "0.7.1"
-#define DATE "2025-07-22"
+#define VERSION "0.8.0-alpha"
+#define DATE "2025-08-25"
 
 #define WIN_API_MUSIC_DELAY 80
 #define REPOPULATE 127 // The number of frame before the whole sista::Field is emptied and repopulated

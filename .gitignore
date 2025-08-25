@@ -38,3 +38,6 @@ dodas
 
 # Debug files
 debug.log
+
+# Other
+.vscode
