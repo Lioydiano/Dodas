@@ -23,7 +23,7 @@ jobs:
           repository: FLAK-ZOSO/Sista
           path: Sista
           ref: main
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Install Sista
         if: matrix.os != 'windows-latest'
