@@ -8,9 +8,14 @@ else
 endif
 
 ifeq ($(OS),Windows_NT)
+	PREFIX ?= C:\Program Files\Sista
     WINMM_FLAG = -lwinmm
 	INCLUDE_PATH_DIRECTIVE = -I"$(PREFIX)\include"
 	LD_LIBRARY_PATH_DIRECTIVE = -L"$(PREFIX)\lib"
+else
+	PREFIX ?= /usr/local
+	INCLUDE_PATH_DIRECTIVE = -I$(PREFIX)/include
+	LD_LIBRARY_PATH_DIRECTIVE = -L$(PREFIX)/lib
 endif
 
 all:
