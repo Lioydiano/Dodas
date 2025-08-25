@@ -217,12 +217,6 @@ int main(int argc, char** argv) {
             {"ML1", 4}, {"ML2", 6}, {"ML3", 6}, {"ML4", 6},
             {"P1", 4}, {"P2", 8}, {"P3", 6}, {"P4", 6}
         };
-        int length[4][5] = {
-            {0, 0, 0, 0, 0},
-            {0, 10, 16, 16, 8},
-            {0, 4, 6, 6, 6},
-            {0, 4, 8, 6, 6}
-        };
         // debug << "Before music thread" << std::endl;
         music_th = std::thread([&]() {
             int n, genre;
@@ -252,6 +246,12 @@ int main(int argc, char** argv) {
                 }
             }
             #elif _WIN32
+            int length[4][5] = {
+                {0, 0, 0, 0, 0},
+                {0, 10, 16, 16, 8},
+                {0, 4, 6, 6, 6},
+                {0, 4, 8, 6, 6}
+            };
             while (!end) {
                 // debug << "Before genre" << std::endl;
                 genre = genresDistribution(rng);
@@ -540,6 +540,7 @@ int main(int argc, char** argv) {
         }
         std::cout << std::flush;
 
+        #if SCAN_FOR_NULLPTRS
         // At the end of the frame we check if in the Field there is any Entity which isn't in any of the lists
         std::vector<sista::Coordinates> coordinates;
         for (unsigned short j=0; j<20; j++) {
@@ -570,6 +571,7 @@ int main(int argc, char** argv) {
             field->erasePawn(coord);
         }
         // debug << "\tAfter erasing nullptrs" << std::endl;
+        #endif
     }
     if (music) {
         music_th.join();
