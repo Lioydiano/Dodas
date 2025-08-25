@@ -16,7 +16,8 @@
 
 #define DEBUG 1
 #define INTRO 1
-#define VERSION "0.8.0-alpha"
+#define SCAN_FOR_NULLPTRS 1
+#define VERSION "1.0.0-alpha"
 #define DATE "2025-08-25"
 
 #define WIN_API_MUSIC_DELAY 80
