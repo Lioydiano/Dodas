@@ -17,6 +17,19 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
+      - name: Checkout Sista dependency
+        uses: actions/checkout@v4
+        with:
+          repository: FLAK-ZOSO/Sista
+          path: Sista
+          ref: main
+
+      - name: Install Sista
+        run: |
+          cd Sista
+          sudo make install
+          cd ..
+
       - name: Checkout code
         uses: actions/checkout@v4
 
