@@ -342,8 +342,8 @@ int main(int argc, char** argv) {
             bullet->move();
             // debug << "\t\tAfter move" << std::endl;
         }
-        removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
-        removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         debug << "\tAfter bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
             if (enemyBullet == nullptr) continue;
@@ -368,8 +368,8 @@ int main(int argc, char** argv) {
         }
         debug << "\tAfter enemy bullets" << std::endl;
         
-        removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
-        removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
             if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) {
