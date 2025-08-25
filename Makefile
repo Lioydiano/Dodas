@@ -1,6 +1,3 @@
-# Makefile for dodas.cpp
-IMPLEMENTATIONS = include/sista/ANSI-Settings.cpp include/sista/border.cpp include/sista/coordinates.cpp include/sista/cursor.cpp include/sista/field.cpp include/sista/pawn.cpp
-
 UNAME := $(shell uname)
 STATIC_FLAG =
 WINMM_FLAG =
@@ -11,11 +8,17 @@ else
 endif
 
 ifeq ($(OS),Windows_NT)
+	PREFIX ?= C:\Program Files\Sista
     WINMM_FLAG = -lwinmm
+	INCLUDE_PATH_DIRECTIVE = -I"$(PREFIX)\include"
+	LD_LIBRARY_PATH_DIRECTIVE = -L"$(PREFIX)\lib"
+else
+	PREFIX ?= /usr/local
+	INCLUDE_PATH_DIRECTIVE = -I$(PREFIX)/include
+	LD_LIBRARY_PATH_DIRECTIVE = -L$(PREFIX)/lib
 endif
 
 all:
-	g++ -std=c++17 -Wall -g -c $(IMPLEMENTATIONS)
-	g++ -std=c++17 -Wall -g $(STATIC_FLAG) -c dodas.cpp
-	g++ -std=c++17 -Wall -g $(STATIC_FLAG) -o dodas dodas.o ANSI-Settings.o border.o coordinates.o cursor.o pawn.o field.o $(WINMM_FLAG)
+	g++ -std=c++17 -Wall -g $(STATIC_FLAG) -c dodas.cpp $(INCLUDE_PATH_DIRECTIVE) -o dodas.o
+	g++ -std=c++17 -Wall -g $(STATIC_FLAG) -o dodas dodas.o $(LD_LIBRARY_PATH_DIRECTIVE) $(WINMM_FLAG) -lSista
 	rm -f *.o

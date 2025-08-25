@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <iostream>
 
 #if DEBUG
 std::ofstream debug("debug.log");
@@ -12,18 +13,18 @@ std::ofstream debug("debug.log");
 
 sista::SwappableField* field;
 
-std::vector<Bullet*> Bullet::bullets;
-std::vector<EnemyBullet*> EnemyBullet::enemyBullets;
-std::vector<Zombie*> Zombie::zombies;
-std::vector<Walker*> Walker::walkers;
-std::vector<Wall*> Wall::walls;
-std::vector<Mine*> Mine::mines;
-std::vector<Cannon*> Cannon::cannons;
-std::vector<ArmedWorker*> ArmedWorker::armedWorkers;
-std::vector<Worker*> Worker::workers;
-std::vector<Bomber*> Bomber::bombers;
-Player* Player::player;
-Queen* Queen::queen;
+std::vector<std::shared_ptr<Bullet>> Bullet::bullets;
+std::vector<std::shared_ptr<EnemyBullet>> EnemyBullet::enemyBullets;
+std::vector<std::shared_ptr<Zombie>> Zombie::zombies;
+std::vector<std::shared_ptr<Walker>> Walker::walkers;
+std::vector<std::shared_ptr<Wall>> Wall::walls;
+std::vector<std::shared_ptr<Mine>> Mine::mines;
+std::vector<std::shared_ptr<Cannon>> Cannon::cannons;
+std::vector<std::shared_ptr<ArmedWorker>> ArmedWorker::armedWorkers;
+std::vector<std::shared_ptr<Worker>> Worker::workers;
+std::vector<std::shared_ptr<Bomber>> Bomber::bombers;
+std::shared_ptr<Player> Player::player;
+std::shared_ptr<Queen> Queen::queen;
 
 std::bernoulli_distribution Zombie::distribution(ZOMBIE_MOVING_PROBABILITY);
 std::bernoulli_distribution Zombie::shootDistribution(ZOMBIE_SHOOTING_PROBABILITY);
@@ -38,7 +39,7 @@ int main(int argc, char** argv) {
         term_echooff();
     #endif
     std::ios_base::sync_with_stdio(false);
-    ANSI::reset(); // Reset the settings
+    sista::resetAnsi(); // Reset the settings
     srand(time(0)); // Seed the random number generator
     #if INTRO
         printIntro();
@@ -48,9 +49,9 @@ int main(int argc, char** argv) {
     field->clear();
     sista::Border border(
         '#', {
-            ANSI::ForegroundColor::F_WHITE,
-            ANSI::BackgroundColor::B_BLACK,
-            ANSI::Attribute::BRIGHT
+            sista::ForegroundColor::WHITE,
+            sista::BackgroundColor::BLACK,
+            sista::Attribute::BRIGHT
         }
     );
     bool unofficial = false;
@@ -62,9 +63,9 @@ int main(int argc, char** argv) {
             // if argv contains "--unofficial" or "-u" then the game will be played in the unofficial mode
             if (std::string(argv[i]) == "--unofficial" || std::string(argv[i]) == "-u" || std::string(argv[i]) == "-U") {
                 border = sista::Border('0', {
-                        ANSI::ForegroundColor::F_WHITE,
-                        ANSI::BackgroundColor::B_BLACK,
-                        ANSI::Attribute::BRIGHT
+                        sista::ForegroundColor::WHITE,
+                        sista::BackgroundColor::BLACK,
+                        sista::Attribute::BRIGHT
                     }
                 ); // An unofficial run is marked with a '0' in the border
                 unofficial = true;
@@ -85,24 +86,29 @@ int main(int argc, char** argv) {
         }
     }
 
-    field->addPrintPawn(Player::player = new Player({10, 18}));
-    field->addPrintPawn(Queen::queen = new Queen({10, 49}));
+    Player::player = std::make_shared<Player>(sista::Coordinates{10, 18});
+    field->addPrintPawn(Player::player);
+    Queen::queen = std::make_shared<Queen>(sista::Coordinates{10, 49});
+    field->addPrintPawn(Queen::queen);
     for (unsigned short j=0; j<20; j++) {
-        Wall* wall = new Wall({j, 30}, 3); // There is a vertical macrowall in the middle of the field
+        std::shared_ptr<Wall> wall = std::make_shared<Wall>(sista::Coordinates{j, 30}, 3); // There is a vertical macrowall in the middle of the field
         Wall::walls.push_back(wall);
         field->addPrintPawn(wall);
         if (j % 5 == 1) {
-            Zombie* zombie = new Zombie({j, 47}); // Zombies are spawned on the right side of the field (the mother side)
+            // Zombies are spawned on the right side of the field (the mother side)
+            std::shared_ptr<Zombie> zombie = std::make_shared<Zombie>(sista::Coordinates{j, 47});
             Zombie::zombies.push_back(zombie);
             field->addPrintPawn(zombie);
         }
         if (j % 5 == 3) {
-            Walker* walker = new Walker({j, 45}); // Walkers are spawned on the right side of the field (the mother side)
+            // Walkers are spawned on the right side of the field (the mother side)
+            std::shared_ptr<Walker> walker = std::make_shared<Walker>(sista::Coordinates{j, 45});
             Walker::walkers.push_back(walker);
             field->addPrintPawn(walker);
         }
         if (j % 5 == 2) {
-            Worker* worker = new Worker({j, 1}); // Workers are spawned on the left side of the field (the player side)
+            // Workers are spawned on the left side of the field (the player side)
+            std::shared_ptr<Worker> worker = std::make_shared<Worker>(sista::Coordinates{j, 1});
             Worker::workers.push_back(worker);
             field->addPrintPawn(worker);
         }
@@ -324,11 +330,11 @@ int main(int argc, char** argv) {
             // debug << "\tBullet " << j << ": " << Bullet::bullets[j] << std::endl;
         }
         #endif
-        // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
             if (j >= Bullet::bullets.size()) break;
             // debug << "\tBullet " << j << std::endl;
-            Bullet* bullet = Bullet::bullets[j];
+            std::shared_ptr<Bullet> bullet = Bullet::bullets[j];
             if (bullet == nullptr) continue;
             // debug << "\t\tNot nullptr " << bullet << std::endl;
             if (bullet->collided) continue;
@@ -336,63 +342,70 @@ int main(int argc, char** argv) {
             bullet->move();
             // debug << "\t\tAfter move" << std::endl;
         }
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         // debug << "\tAfter bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
+            if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
         // debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
+            if (bullet == nullptr) continue;
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
         // debug << "\tAfter bullets deletion" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
-        // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
         for (unsigned j=0; j<EnemyBullet::enemyBullets.size(); j++) {
             if (j >= EnemyBullet::enemyBullets.size()) break;
-            EnemyBullet* enemyBullet = EnemyBullet::enemyBullets[j];
+            std::shared_ptr<EnemyBullet> enemyBullet = EnemyBullet::enemyBullets[j];
             if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) continue;
             enemyBullet->move();
         }
         // debug << "\tAfter enemy bullets" << std::endl;
+        
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
+            if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
         // debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
+            if (bullet == nullptr) continue;
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
         // debug << "\tAfter bullets deletion" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)EnemyBullet::enemyBullets);
-        // removeNullptrs((std::vector<Entity*>&)Zombie::zombies);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Zombie::zombies);
         for (auto zombie : Zombie::zombies) {
             if (Zombie::distribution(rng))
                 zombie->move();
         }
         // debug << "\tAfter zombies" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Walker::walkers);
         for (auto zombie : Zombie::zombies)
             if (Zombie::shootDistribution(rng))
                 zombie->shoot();
         // debug << "\tAfter zombies shooting" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Walker::walkers);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Walker::walkers);
         for (auto walker : Walker::walkers)
             if (Walker::distribution(rng))
                 walker->move();
         // debug << "\tAfter walkers" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Mine::mines);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Mine::mines);
         for (auto mine : Mine::mines)
             mine->checkTrigger();
         // debug << "\tAfter mines" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Worker::workers);        
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Worker::workers);        
         std::vector<std::vector<unsigned short>> workersPositions(20, std::vector<unsigned short>()); // workersPositions[y] = {x1, x2, x3, ...} where the workers are
         for (auto worker : Worker::workers) {
             workersPositions[worker->getCoordinates().y].push_back(worker->getCoordinates().x);
@@ -400,7 +413,7 @@ int main(int argc, char** argv) {
                 worker->produce();
         }
         // debug << "\tAfter workers" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Cannon::cannons);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Cannon::cannons);
         for (auto worker : ArmedWorker::armedWorkers) {
             if (worker->distribution(rng))
                 worker->produce();
@@ -413,9 +426,9 @@ int main(int argc, char** argv) {
                 cannon->fire();
         }
         // debug << "\tAfter cannons" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Bomber::bombers);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bomber::bombers);
         for (unsigned j = 0; j < Bomber::bombers.size(); j++) {
-            Bomber* bomber = Bomber::bombers[j];
+            std::shared_ptr<Bomber> bomber = Bomber::bombers[j];
             if (bomber == nullptr) continue;
             bomber->move();
         }
@@ -426,16 +439,16 @@ int main(int argc, char** argv) {
             // Nothing to do here
         }
         // debug << "\tAfter queen" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Wall::walls);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Wall::walls);
         for (unsigned j = 0; j < Wall::walls.size(); j++) {
-            Wall* wall = Wall::walls[j];
+            std::shared_ptr<Wall> wall = Wall::walls[j];
             if (wall == nullptr) continue;
             if (wall->strength == 0) {
                 Wall::removeWall(wall);
             }
         }
         // debug << "\tAfter walls" << std::endl;
-        // removeNullptrs((std::vector<Entity*>&)Bullet::bullets);
+        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         for (unsigned j=0; j<Mine::mines.size(); j++) {
             if (j >= Mine::mines.size()) break;
             if (Mine::mines[j] == nullptr) continue;
@@ -449,7 +462,7 @@ int main(int argc, char** argv) {
         if (i % 100 == 0) {
             unsigned short y = rand() % 20;
             if (Queen::queen->getCoordinates().y != y) {
-                Walker* walker = new Walker({y, 49});
+                std::shared_ptr<Walker> walker = std::make_shared<Walker>(sista::Coordinates{y, 49});
                 Walker::walkers.push_back(walker);
                 field->addPrintPawn(walker);
             }
@@ -458,7 +471,7 @@ int main(int argc, char** argv) {
         if (i % 200 == 0) {
             unsigned short y = rand() % 20;
             if (Queen::queen->getCoordinates().y != y) {
-                Zombie* zombie = new Zombie({y, 49});
+                std::shared_ptr<Zombie> zombie = std::make_shared<Zombie>(sista::Coordinates{y, 49});
                 Zombie::zombies.push_back(zombie);
                 field->addPrintPawn(zombie);
             }
@@ -471,7 +484,7 @@ int main(int argc, char** argv) {
                 for (unsigned short j=0; j<i/100; j++) {
                     unsigned short y = rand() % 20;
                     if (Queen::queen->getCoordinates().y != y) {
-                        Walker* walker = new Walker({y, 49});
+                        std::shared_ptr<Walker> walker = std::make_shared<Walker>(sista::Coordinates{y, 49});
                         Walker::walkers.push_back(walker);
                         field->addPrintPawn(walker);
                     }
@@ -479,7 +492,7 @@ int main(int argc, char** argv) {
                 for (unsigned short j=0; j<i/200; j++) {
                     unsigned short y = rand() % 20;
                     if (Queen::queen->getCoordinates().y != y) {
-                        Zombie* zombie = new Zombie({y, 49});
+                        std::shared_ptr<Zombie> zombie = std::make_shared<Zombie>(sista::Coordinates{y, 49});
                         Zombie::zombies.push_back(zombie);
                         field->addPrintPawn(zombie);
                     }
@@ -521,21 +534,21 @@ int main(int argc, char** argv) {
             Queen::queen->life = 9;
         }
         Queen::queen->setSymbol('0' + Queen::queen->life);
-        field->rePrintPawn(Queen::queen);
+        field->rePrintPawn(Queen::queen.get());
         if (i % 10 == 0) {
             sista::clearScreen();
             field->print(border);
         }
         // Statistics
         Queen::queenStyle.apply();
-        cursor.set(8, 55);
+        cursor.goTo(8, 55);
         std::cout << "Frame elapsed: " << i << " ";
-        cursor.set(10, 55);
+        cursor.goTo(10, 55);
         std::cout << "Ammonitions: " << Player::player->ammonitions << "    ";
-        cursor.set(12, 55);
+        cursor.goTo(12, 55);
         std::cout << "Life: " << Queen::queen->life;
         if (!unofficial) {
-            cursor.set(14, 55);
+            cursor.goTo(14, 55);
             std::cout << START_AMMONITION; // The official run should show the starting ammonition
         }
         std::cout << std::flush;
@@ -547,20 +560,28 @@ int main(int argc, char** argv) {
             for (unsigned short i=0; i<50; i++) {
                 Entity* pawn = (Entity*)field->getPawn(j, i);
                 if (pawn == nullptr) continue;
-                if (std::find(Bullet::bullets.begin(), Bullet::bullets.end(), pawn) == Bullet::bullets.end() &&
-                    std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), pawn) == EnemyBullet::enemyBullets.end() &&
-                    std::find(Zombie::zombies.begin(), Zombie::zombies.end(), pawn) == Zombie::zombies.end() &&
-                    std::find(Walker::walkers.begin(), Walker::walkers.end(), pawn) == Walker::walkers.end() &&
-                    std::find(Wall::walls.begin(), Wall::walls.end(), pawn) == Wall::walls.end() &&
-                    std::find(Mine::mines.begin(), Mine::mines.end(), pawn) == Mine::mines.end() &&
-                    std::find(Cannon::cannons.begin(), Cannon::cannons.end(), pawn) == Cannon::cannons.end() &&
-                    std::find(Worker::workers.begin(), Worker::workers.end(), pawn) == Worker::workers.end() &&
-                    std::find(ArmedWorker::armedWorkers.begin(), ArmedWorker::armedWorkers.end(), pawn) == ArmedWorker::armedWorkers.end() &&
-                    std::find(Bomber::bombers.begin(), Bomber::bombers.end(), pawn) == Bomber::bombers.end() &&
-                    pawn != Player::player && pawn != Queen::queen) {
+
+                // Helper lambda to check if a raw pointer is in a vector of shared_ptr
+                auto contains_raw_ptr = [pawn](const auto& vec) {
+                    return std::find_if(vec.begin(), vec.end(),
+                        [pawn](const auto& sp) { return sp.get() == pawn; }) != vec.end();
+                };
+
+                if (!contains_raw_ptr(Bullet::bullets) &&
+                    !contains_raw_ptr(EnemyBullet::enemyBullets) &&
+                    !contains_raw_ptr(Zombie::zombies) &&
+                    !contains_raw_ptr(Walker::walkers) &&
+                    !contains_raw_ptr(Wall::walls) &&
+                    !contains_raw_ptr(Mine::mines) &&
+                    !contains_raw_ptr(Cannon::cannons) &&
+                    !contains_raw_ptr(Worker::workers) &&
+                    !contains_raw_ptr(ArmedWorker::armedWorkers) &&
+                    !contains_raw_ptr(Bomber::bombers) &&
+                    pawn != Player::player.get() && pawn != Queen::queen.get()) {
                     coordinates.push_back(pawn->getCoordinates());
                     #if DEBUG
-                    debug << "Erasing " << pawn << " at " << pawn->getCoordinates() << std::endl;
+                    debug << "Erasing " << pawn << " at {" << pawn->getCoordinates().y;
+                    debug << ", " << pawn->getCoordinates().x << "}" << std::endl;
                     debug << "\t" << typeid(*pawn).name() << std::endl;
                     #endif
                 }
@@ -578,7 +599,7 @@ int main(int argc, char** argv) {
     }
     th.join();
     flushInput();
-    cursor.set(52, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
+    cursor.goTo(52, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
     #ifdef __APPLE__
     tcsetattr(0, TCSANOW, &orig_termios);
     #endif
@@ -638,18 +659,46 @@ std::unordered_map<Direction, char> directionSymbol = {
 };
 std::mt19937 rng(std::chrono::system_clock::now().time_since_epoch().count());
 
-Entity::Entity(char symbol, sista::Coordinates coordinates, ANSI::Settings& settings, Type type) : sista::Pawn(symbol, coordinates, settings), type(type) {}
+Entity::Entity(char symbol, sista::Coordinates coordinates, sista::ANSISettings& settings, Type type) : sista::Pawn(symbol, coordinates, settings), type(type) {}
 Entity::Entity() : sista::Pawn(' ', sista::Coordinates(0, 0), Wall::wallStyle), type(Type::PLAYER) {}
 
-ANSI::Settings Bullet::bulletStyle = {
-    ANSI::ForegroundColor::F_MAGENTA,
-    ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::BRIGHT
+sista::ANSISettings Bullet::bulletStyle = {
+    sista::ForegroundColor::MAGENTA,
+    sista::BackgroundColor::BLACK,
+    sista::Attribute::BRIGHT
 };
-void Bullet::removeBullet(Bullet* bullet) {
+void Bullet::removeBullet(std::shared_ptr<Bullet> bullet) {
+    #if DEBUG
+    debug << "Removing bullet " << bullet << std::endl;
+    debug << "\tAt coordinates {" << bullet->getCoordinates().y << ", " << bullet->getCoordinates().x << "}" << std::endl;
+    debug << "\tAddress: " << bullet.get() << std::endl;
+    debug << "\tIsNull: " << (int)(bullet.get() == nullptr) << std::endl;
+    debug << "\tShared pointer use count: " << bullet.use_count() << std::endl;
+    debug << "\tBefore removal there are " << Bullet::bullets.size() << " bullets" << std::endl;
+    #endif
     Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
-    field->erasePawn(bullet);
-    delete bullet;
+    field->erasePawn(bullet.get());
+    #if DEBUG
+    debug << "\tAfter removal there are " << Bullet::bullets.size() << " bullets" << std::endl;
+    #endif
+}
+void Bullet::removeBullet(Bullet* bullet) {
+    #if DEBUG
+    debug << "Removing bullet " << bullet << std::endl;
+    debug << "\tAt coordinates {" << bullet->getCoordinates().y << ", " << bullet->getCoordinates().x << "}" << std::endl;
+    debug << "\tAddress: " << bullet << std::endl;
+    debug << "\tIsNull: " << (int)(bullet == nullptr) << std::endl;
+    debug << "\tBefore removal there are " << Bullet::bullets.size() << " bullets" << std::endl;
+    #endif
+    auto it = std::find_if(Bullet::bullets.begin(), Bullet::bullets.end(),
+        [bullet](const std::shared_ptr<Bullet>& b) { return b.get() == bullet; });
+    if (it != Bullet::bullets.end()) {
+        Bullet::bullets.erase(it);
+        field->erasePawn(bullet);
+    }
+    #if DEBUG
+    debug << "\tAfter removal there are " << Bullet::bullets.size() << " bullets" << std::endl;
+    #endif
 }
 Bullet::Bullet() : Entity(' ', {0, 0}, bulletStyle, Type::BULLET), direction(Direction::RIGHT), speed(1) {}
 Bullet::Bullet(sista::Coordinates coordinates, Direction direction) : Entity(directionSymbol[direction], coordinates, bulletStyle, Type::BULLET), direction(direction), speed(1) {}
@@ -690,7 +739,7 @@ void Bullet::move() {
         } else if (hitten->type == Type::BULLET) {
             // debug << "\tBullet" << std::endl;
             ((Bullet*)hitten)->collided = true;
-            // debug << "\tBullet collided" << std::endl;
+            // debug << "\tBullet" << hitten << " collided" << std::endl;
             // Bullet::removeBullet((Bullet*)hitten);
             return;
         } else if (hitten->type == Type::ENEMYBULLET) {
@@ -733,18 +782,26 @@ void Bullet::move() {
 }
 
 
-ANSI::Settings EnemyBullet::enemyBulletStyle = {
-    ANSI::ForegroundColor::F_GREEN,
-    ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::BRIGHT
+sista::ANSISettings EnemyBullet::enemyBulletStyle = {
+    sista::ForegroundColor::GREEN,
+    sista::BackgroundColor::BLACK,
+    sista::Attribute::BRIGHT
 };
 EnemyBullet::EnemyBullet(sista::Coordinates coordinates, Direction direction, unsigned short speed) : Entity(directionSymbol[direction], coordinates, enemyBulletStyle, Type::ENEMYBULLET), direction(direction), speed(speed) {}
 EnemyBullet::EnemyBullet(sista::Coordinates coordinates, Direction direction) : Entity(directionSymbol[direction], coordinates, enemyBulletStyle, Type::ENEMYBULLET), direction(direction), speed(1) {}
 EnemyBullet::EnemyBullet() : Entity(' ', {0, 0}, enemyBulletStyle, Type::ENEMYBULLET), direction(Direction::UP), speed(1) {}
-void EnemyBullet::removeEnemyBullet(EnemyBullet* enemyBullet) {
+void EnemyBullet::removeEnemyBullet(std::shared_ptr<EnemyBullet> enemyBullet) {
     EnemyBullet::enemyBullets.erase(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), enemyBullet));
-    field->erasePawn(enemyBullet);
-    delete enemyBullet;
+    field->erasePawn(enemyBullet.get());
+}
+void EnemyBullet::removeEnemyBullet(EnemyBullet* enemyBullet) {
+    for (auto it = EnemyBullet::enemyBullets.begin(); it != EnemyBullet::enemyBullets.end(); ++it) {
+        if (it->get() == enemyBullet) {
+            field->erasePawn(enemyBullet);
+            EnemyBullet::enemyBullets.erase(it);
+            return;
+        }
+    }
 }
 void EnemyBullet::move() { // Pretty sure there's a segfault here
     sista::Coordinates nextCoordinates = coordinates + directionMap[direction]*speed;
@@ -793,10 +850,10 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
     }
 }
 
-ANSI::Settings Player::playerStyle = {
-    ANSI::ForegroundColor::F_RED,
-    ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::BRIGHT
+sista::ANSISettings Player::playerStyle = {
+    sista::ForegroundColor::RED,
+    sista::BackgroundColor::BLACK,
+    sista::Attribute::BRIGHT
 };
 Player::Player(sista::Coordinates coordinates) : Entity('$', coordinates, playerStyle, Type::PLAYER), weapon(Type::BULLET), ammonitions(START_AMMONITION) {}
 Player::Player() : Entity('$', {0, 0}, playerStyle, Type::PLAYER), weapon(Type::BULLET), ammonitions(START_AMMONITION) {}
@@ -820,7 +877,7 @@ void Player::shoot(Direction direction) {
     switch (weapon) {
     case Type::BULLET: {
         Player::player->ammonitions--;
-        Bullet* newbullet = new Bullet(spawn, direction);
+        std::shared_ptr<Bullet> newbullet = std::make_shared<Bullet>(spawn, direction);
         Bullet::bullets.push_back(newbullet);
         field->addPrintPawn(newbullet);
         break;
@@ -829,7 +886,7 @@ void Player::shoot(Direction direction) {
         if (Player::player->ammonitions < 3)
             return;
         Player::player->ammonitions -= 3;
-        Mine* newmine = new Mine(spawn);
+        std::shared_ptr<Mine> newmine = std::make_shared<Mine>(spawn);
         Mine::mines.push_back(newmine);
         field->addPrintPawn(newmine);
         break;
@@ -838,7 +895,7 @@ void Player::shoot(Direction direction) {
         if (Player::player->ammonitions < 5)
             return;
         Player::player->ammonitions -= 5;
-        Cannon* newcannon = new Cannon(spawn, CANNON_FIRE_PERIOD);
+        std::shared_ptr<Cannon> newcannon = std::make_shared<Cannon>(spawn, CANNON_FIRE_PERIOD);
         Cannon::cannons.push_back(newcannon);
         field->addPrintPawn(newcannon);
         break;
@@ -847,7 +904,7 @@ void Player::shoot(Direction direction) {
         if (Player::player->ammonitions < 7)
             return;
         Player::player->ammonitions -= 7;
-        Bomber* newbomber = new Bomber(spawn);
+        std::shared_ptr<Bomber> newbomber = std::make_shared<Bomber>(spawn);
         Bomber::bombers.push_back(newbomber);
         field->addPrintPawn(newbomber);
         break;
@@ -856,7 +913,7 @@ void Player::shoot(Direction direction) {
         if (Player::player->ammonitions < 5)
             return;
         Player::player->ammonitions -= 5;
-        Worker* newworker = new Worker(spawn, WORKER_PRODUCTION_PERIOD);
+        std::shared_ptr<Worker> newworker = std::make_shared<Worker>(spawn, WORKER_PRODUCTION_PERIOD);
         Worker::workers.push_back(newworker);
         field->addPrintPawn(newworker);
         break;
@@ -865,7 +922,7 @@ void Player::shoot(Direction direction) {
         if (Player::player->ammonitions < 8)
             return;
         Player::player->ammonitions -= 8;
-        ArmedWorker* newworker = new ArmedWorker(spawn, WORKER_PRODUCTION_PERIOD);
+        std::shared_ptr<ArmedWorker> newworker = std::make_shared<ArmedWorker>(spawn, WORKER_PRODUCTION_PERIOD);
         ArmedWorker::armedWorkers.push_back(newworker);
         field->addPrintPawn(newworker);
         break;
@@ -874,7 +931,7 @@ void Player::shoot(Direction direction) {
         if (Player::player->ammonitions < 1)
             return;
         Player::player->ammonitions -= 1;
-        Wall* newwall = new Wall(spawn, 2);
+        std::shared_ptr<Wall> newwall = std::make_shared<Wall>(spawn, 2);
         Wall::walls.push_back(newwall);
         field->addPrintPawn(newwall);
         break;
@@ -884,15 +941,22 @@ void Player::shoot(Direction direction) {
     }
 }
 
-ANSI::Settings Zombie::zombieStyle = {
-    ANSI::ForegroundColor::F_BLACK,
-    ANSI::BackgroundColor::B_GREEN,
-    ANSI::Attribute::FAINT
+sista::ANSISettings Zombie::zombieStyle = {
+    sista::ForegroundColor::BLACK,
+    sista::BackgroundColor::GREEN,
+    sista::Attribute::FAINT
 };
-void Zombie::removeZombie(Zombie* zombie) {
+void Zombie::removeZombie(std::shared_ptr<Zombie> zombie) {
     Zombie::zombies.erase(std::find(Zombie::zombies.begin(), Zombie::zombies.end(), zombie));
-    field->erasePawn(zombie);
-    delete zombie;
+    field->erasePawn(zombie.get());
+}
+void Zombie::removeZombie(Zombie* zombie) {
+    auto it = std::find_if(Zombie::zombies.begin(), Zombie::zombies.end(),
+        [zombie](const std::shared_ptr<Zombie>& z) { return z.get() == zombie; });
+    if (it != Zombie::zombies.end()) {
+        field->erasePawn(zombie);
+        Zombie::zombies.erase(it);
+    }
 }
 Zombie::Zombie(sista::Coordinates coordinates) : Entity('Z', coordinates, zombieStyle, Type::ZOMBIE) {}
 Zombie::Zombie() : Entity('Z', {0, 0}, zombieStyle, Type::ZOMBIE) {}
@@ -923,15 +987,15 @@ void Zombie::shoot() {
     if (!field->isFree(spawn)) {
         return; // No complications, if you can't spawn something there just pretend the command was never given
     }
-    EnemyBullet* newbullet = new EnemyBullet(spawn, Direction::LEFT);
+    std::shared_ptr<EnemyBullet> newbullet = std::make_shared<EnemyBullet>(spawn, Direction::LEFT);
     EnemyBullet::enemyBullets.push_back(newbullet);
     field->addPrintPawn(newbullet);
 }
 
-ANSI::Settings Queen::queenStyle = {
-    ANSI::ForegroundColor::F_BLACK,
-    ANSI::BackgroundColor::B_RED,
-    ANSI::Attribute::BRIGHT
+sista::ANSISettings Queen::queenStyle = {
+    sista::ForegroundColor::BLACK,
+    sista::BackgroundColor::RED,
+    sista::Attribute::BRIGHT
 };
 Queen::Queen(sista::Coordinates coordinates) : Entity('9', coordinates, queenStyle, Type::QUEEN), life(9) {}
 Queen::Queen() : Entity('9', {0, 0}, queenStyle, Type::QUEEN), life(9) {}
@@ -974,34 +1038,32 @@ void Queen::createWall() {
     if (x <= 30) return; // No free space to create the wall
     // Now we can create the wall
     for (unsigned short j=y-length/2; j<=y+1+length/2; j++) {
-        Wall* wall = new Wall({j, x}, 1);
+        std::shared_ptr<Wall> wall = std::make_shared<Wall>(sista::Coordinates{j, x}, 1);
         Wall::walls.push_back(wall);
         field->addPrintPawn(wall);
     }
 }
 
-ANSI::Settings Wall::wallStyle = {
-    ANSI::ForegroundColor::F_YELLOW,
-    ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::BRIGHT
+sista::ANSISettings Wall::wallStyle = {
+    sista::ForegroundColor::YELLOW,
+    sista::BackgroundColor::BLACK,
+    sista::Attribute::BRIGHT
 };
-void Wall::removeWall(Wall* wall) {
+void Wall::removeWall(std::shared_ptr<Wall> wall) {
     Wall::walls.erase(std::find(Wall::walls.begin(), Wall::walls.end(), wall));
-    field->erasePawn(wall);
-    delete wall;
+    field->erasePawn(wall.get());
 }
 Wall::Wall(sista::Coordinates coordinates, short int strength) : Entity('=', coordinates, wallStyle, Type::WALL), strength(strength) {}
 Wall::Wall() : Entity('=', {0, 0}, wallStyle, Type::WALL), strength(3) {}
 
-ANSI::Settings Mine::mineStyle = {
-    ANSI::ForegroundColor::F_MAGENTA,
-    ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::BLINK   
+sista::ANSISettings Mine::mineStyle = {
+    sista::ForegroundColor::MAGENTA,
+    sista::BackgroundColor::BLACK,
+    sista::Attribute::BLINK   
 };
-void Mine::removeMine(Mine* mine) {
+void Mine::removeMine(std::shared_ptr<Mine> mine) {
     Mine::mines.erase(std::find(Mine::mines.begin(), Mine::mines.end(), mine));
-    field->erasePawn(mine);
-    delete mine;
+    field->erasePawn(mine.get());
 }
 Mine::Mine(sista::Coordinates coordinates) : Entity('*', coordinates, mineStyle, Type::MINE), triggered(false) {}
 Mine::Mine() : Entity('*', {0, 0}, mineStyle, Type::MINE), triggered(false) {}
@@ -1025,14 +1087,16 @@ bool Mine::checkTrigger() {
 void Mine::trigger() {
     triggered = true;
     symbol = '%';
-    settings.foregroundColor = ANSI::ForegroundColor::F_WHITE;
+    settings.foregroundColor = sista::ForegroundColor::WHITE;
 }
 void Mine::explode() {
     for (int j=-2; j<=2; j++) {
         for (int i=-2; i<=2; i++) {
             if (i == 0 && j == 0) continue;
             sista::Coordinates nextCoordinates = coordinates + sista::Coordinates(j, i);
-            if (field->isOutOfBounds(nextCoordinates)) continue;
+            if (field->isOutOfBounds(nextCoordinates)) {
+                continue;
+            }
             Entity* neighbor = (Entity*)field->getPawn(nextCoordinates);
             if (neighbor == nullptr) {
                 continue;
@@ -1071,16 +1135,23 @@ void Mine::explode() {
     }
 }
 
-ANSI::Settings Cannon::cannonStyle = {
-    ANSI::ForegroundColor::F_RED,
-    ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::BRIGHT
+sista::ANSISettings Cannon::cannonStyle = {
+    sista::ForegroundColor::RED,
+    sista::BackgroundColor::BLACK,
+    sista::Attribute::BRIGHT
 };
 std::bernoulli_distribution Cannon::distribution(1.0/CANNON_FIRE_PERIOD);
-void Cannon::removeCannon(Cannon* cannon) {
+void Cannon::removeCannon(std::shared_ptr<Cannon> cannon) {
     Cannon::cannons.erase(std::find(Cannon::cannons.begin(), Cannon::cannons.end(), cannon));
-    field->erasePawn(cannon);
-    delete cannon;
+    field->erasePawn(cannon.get());
+}
+void Cannon::removeCannon(Cannon* cannon) {
+    auto it = std::find_if(Cannon::cannons.begin(), Cannon::cannons.end(),
+        [cannon](const std::shared_ptr<Cannon>& c) { return c.get() == cannon; });
+    if (it != Cannon::cannons.end()) {
+        field->erasePawn(cannon);
+        Cannon::cannons.erase(it);
+    }
 }
 Cannon::Cannon(sista::Coordinates coordinates, unsigned short period) : Entity('C', coordinates, cannonStyle, Type::CANNON) {}
 Cannon::Cannon() : Entity('C', {0, 0}, cannonStyle, Type::CANNON) {}
@@ -1093,7 +1164,7 @@ void Cannon::fire() {
         return; // No complications, if you can't spawn something there just pretend the command was never given
     }
     Player::player->ammonitions--;
-    Bullet* newbullet = new Bullet(spawn, Direction::RIGHT);
+    std::shared_ptr<Bullet> newbullet = std::make_shared<Bullet>(spawn, Direction::RIGHT);
     Bullet::bullets.push_back(newbullet);
     field->addPrintPawn(newbullet);
 }
@@ -1110,15 +1181,22 @@ void Cannon::recomputeDistribution(std::vector<std::vector<unsigned short>>& wor
     distribution = std::bernoulli_distribution(1.0/((float)CANNON_FIRE_PERIOD - std::min(1.4*count, 39.0)));
 }
 
-ANSI::Settings Worker::workerStyle = {
-    ANSI::ForegroundColor::F_YELLOW,
-    ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::UNDERSCORE
+sista::ANSISettings Worker::workerStyle = {
+    sista::ForegroundColor::YELLOW,
+    sista::BackgroundColor::BLACK,
+    sista::Attribute::UNDERSCORE
 };
-void Worker::removeWorker(Worker* worker) {
+void Worker::removeWorker(std::shared_ptr<Worker> worker) {
     Worker::workers.erase(std::find(Worker::workers.begin(), Worker::workers.end(), worker));
-    field->erasePawn(worker);
-    delete worker;
+    field->erasePawn(worker.get());
+}
+void Worker::removeWorker(Worker* worker) {
+    auto it = std::find_if(Worker::workers.begin(), Worker::workers.end(),
+        [worker](const std::shared_ptr<Worker>& other) { return other.get() == worker; });
+    if (it != Worker::workers.end()) {
+        Worker::workers.erase(it);
+        field->erasePawn(worker);
+    }
 }
 Worker::Worker(sista::Coordinates coordinates, unsigned short productionRate) : Entity('W', coordinates, workerStyle, Type::WORKER), distribution(std::bernoulli_distribution(1.0/productionRate)) {}
 Worker::Worker(sista::Coordinates coordinates) : Entity('W', coordinates, workerStyle, Type::WORKER), distribution(std::bernoulli_distribution(1.0/WORKER_PRODUCTION_PERIOD)) {}
@@ -1127,15 +1205,22 @@ void Worker::produce() {
     Player::player->ammonitions++;
 }
 
-ANSI::Settings ArmedWorker::armedWorkerStyle = {
-    ANSI::ForegroundColor::F_YELLOW,
-    ANSI::BackgroundColor::B_BLUE,
-    ANSI::Attribute::UNDERSCORE
+sista::ANSISettings ArmedWorker::armedWorkerStyle = {
+    sista::ForegroundColor::YELLOW,
+    sista::BackgroundColor::BLUE,
+    sista::Attribute::UNDERSCORE
 };
-void ArmedWorker::removeArmedWorker(ArmedWorker* worker) {
+void ArmedWorker::removeArmedWorker(std::shared_ptr<ArmedWorker> worker) {
     ArmedWorker::armedWorkers.erase(std::find(ArmedWorker::armedWorkers.begin(), ArmedWorker::armedWorkers.end(), worker));
-    field->erasePawn(worker);
-    delete worker;
+    field->erasePawn(worker.get());
+}
+void ArmedWorker::removeArmedWorker(ArmedWorker* worker) {
+    auto it = std::find_if(ArmedWorker::armedWorkers.begin(), ArmedWorker::armedWorkers.end(),
+        [worker](const std::shared_ptr<ArmedWorker>& other) { return other.get() == worker; });
+    if (it != ArmedWorker::armedWorkers.end()) {
+        ArmedWorker::armedWorkers.erase(it);
+        field->erasePawn(worker);
+    }
 }
 ArmedWorker::ArmedWorker(sista::Coordinates coordinates, unsigned short productionRate) : Entity('W', coordinates, armedWorkerStyle, Type::ARMED_WORKER), distribution(std::bernoulli_distribution(1.0/productionRate)) {}
 ArmedWorker::ArmedWorker(sista::Coordinates coordinates) : Entity('W', coordinates, armedWorkerStyle, Type::ARMED_WORKER), distribution(std::bernoulli_distribution(1.0/WORKER_PRODUCTION_PERIOD)) {}
@@ -1149,7 +1234,7 @@ void ArmedWorker::dodgeIfNeeded() {
         return;
     if (field->isOccupied(target)) {
         if (((Entity*)field->getPawn(target))->type == Type::ENEMYBULLET) {
-            Wall* newwall = new Wall(this->coordinates + directionMap[Direction::RIGHT], 2);
+            std::shared_ptr<Wall> newwall = std::make_shared<Wall>(this->coordinates + directionMap[Direction::RIGHT], 2);
             Wall::walls.push_back(newwall);
             field->addPrintPawn(newwall);
 
@@ -1169,7 +1254,9 @@ void ArmedWorker::dodgeIfNeeded() {
                 }
             }
             
-            Bullet* newbullet = new Bullet(this->coordinates + directionMap[Direction::RIGHT], Direction::RIGHT);
+            std::shared_ptr<Bullet> newbullet = std::make_shared<Bullet>(
+                this->coordinates + directionMap[Direction::RIGHT], Direction::RIGHT
+            );
             Bullet::bullets.push_back(newbullet);
             field->addPrintPawn(newbullet);
 
@@ -1181,15 +1268,22 @@ void ArmedWorker::dodgeIfNeeded() {
     }
 }
 
-ANSI::Settings Bomber::bomberStyle = {
-    ANSI::ForegroundColor::F_BLUE,
-    ANSI::BackgroundColor::B_BLACK,
-    ANSI::Attribute::BRIGHT
+sista::ANSISettings Bomber::bomberStyle = {
+    sista::ForegroundColor::BLUE,
+    sista::BackgroundColor::BLACK,
+    sista::Attribute::BRIGHT
 };
-void Bomber::removeBomber(Bomber* bomber) {
+void Bomber::removeBomber(std::shared_ptr<Bomber> bomber) {
     Bomber::bombers.erase(std::find(Bomber::bombers.begin(), Bomber::bombers.end(), bomber));
-    field->erasePawn(bomber);
-    delete bomber;
+    field->erasePawn(bomber.get());
+}
+void Bomber::removeBomber(Bomber* bomber) {
+    auto it = std::find_if(Bomber::bombers.begin(), Bomber::bombers.end(),
+        [bomber](const std::shared_ptr<Bomber>& b) { return b.get() == bomber; });
+    if (it != Bomber::bombers.end()) {
+        Bomber::bombers.erase(it);
+        field->erasePawn(bomber);
+    }
 }
 Bomber::Bomber(sista::Coordinates coordinates) : Entity('B', coordinates, bomberStyle, Type::BOMBER) {}
 Bomber::Bomber() : Entity('B', {0, 0}, bomberStyle, Type::BOMBER) {}
@@ -1285,15 +1379,22 @@ void Bomber::explode() {
     }
 }
 
-ANSI::Settings Walker::walkerStyle = {
-    ANSI::ForegroundColor::F_BLACK,
-    ANSI::BackgroundColor::B_GREEN,
-    ANSI::Attribute::BRIGHT
+sista::ANSISettings Walker::walkerStyle = {
+    sista::ForegroundColor::BLACK,
+    sista::BackgroundColor::GREEN,
+    sista::Attribute::BRIGHT
 };
-void Walker::removeWalker(Walker* walker) {
+void Walker::removeWalker(std::shared_ptr<Walker> walker) {
     Walker::walkers.erase(std::find(Walker::walkers.begin(), Walker::walkers.end(), walker));
+    field->erasePawn(walker.get());
+}
+void Walker::removeWalker(Walker* walker) {
+    auto it = std::find_if(Walker::walkers.begin(), Walker::walkers.end(),
+        [walker](const std::shared_ptr<Walker>& w) { return w.get() == walker; });
+    if (it != Walker::walkers.end()) {
+        Walker::walkers.erase(it);
+    }
     field->erasePawn(walker);
-    delete walker;
 }
 Walker::Walker(sista::Coordinates coordinates) : Entity('Z', coordinates, walkerStyle, Type::WALKER) {}
 Walker::Walker() : Entity('Z', {0, 0}, walkerStyle, Type::WALKER) {}
@@ -1308,7 +1409,7 @@ void Walker::move() { // Walkers mostly move horizontally because they only rare
             return;
         } else { // Touched bottom limit, we can use pacman effect which clearly can be used by walkers
             try {
-                field->movePawnBy(this, directionMap[Direction::DOWN], PACMAN_EFFECT);
+                field->movePawnBy(this, directionMap[Direction::DOWN], sista::Effect::PACMAN);
             } catch (const std::exception& e) {
                 // Nothing happens, but trying to apply manually the pacman effect and hitting something on the other side would be awkward
             }
@@ -1319,6 +1420,7 @@ void Walker::move() { // Walkers mostly move horizontally because they only rare
     if (neighbor == nullptr) {
         field->movePawn((Pawn*)this, nextCoordinates);
         coordinates = nextCoordinates;
+        return;
     } else if (neighbor->type == Type::PLAYER) {
         // lose();
         end = true;
@@ -1387,11 +1489,53 @@ void Walker::explode() {
     }
 }
 
-void removeNullptrs(std::vector<Entity*>& entities) {
+void removeNullptrs(std::vector<std::shared_ptr<Entity>>& entities) {
+    #if DEBUG
+    unsigned before = entities.size();
+    debug << "Before removing nullptrs: " << before << "\n";
+    #endif
+    entities.erase(
+        std::remove(entities.begin(), entities.end(), nullptr),
+        entities.end()
+    );
+    #if DEBUG
+    unsigned after = entities.size();
+    debug << "After removing nullptrs: " << after << "\n";
+    debug << "Removed " << before - after << " nullptrs\n";
+    #endif
+    entities.erase(
+        std::remove_if(entities.begin(), entities.end(),
+            [](const std::shared_ptr<Entity>& entity) { return entity == nullptr; }),
+        entities.end()
+    );
+    #if DEBUG
+    unsigned after2 = entities.size();
+    debug << "After removing nullptrs (method 2): " << after2 << "\n";
+    debug << "Removed " << after - after2 << " nullptrs\n";
+    #endif
+    // C++11 way
+    for (std::vector<std::shared_ptr<Entity>>::iterator it = entities.begin(); it != entities.end(); ) {
+        if (*it == nullptr) {
+            it = entities.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    #if DEBUG
+    unsigned after3 = entities.size();
+    debug << "After removing nullptrs (method 3): " << after3 << "\n";
+    debug << "Removed " << after2 - after3 << " nullptrs\n";
+    #endif
     for (unsigned i=0; i<entities.size(); i++) {
         if (entities[i] == nullptr) {
             entities.erase(entities.begin() + i);
             i--;
         }
     }
+    #if DEBUG
+    unsigned after4 = entities.size();
+    debug << "After removing nullptrs (method 4): " << after4 << "\n";
+    debug << "Removed " << after3 - after4 << " nullptrs\n";
+    debug << "Total removed nullptrs: " << before - after4 << "\n";
+    #endif
 }
