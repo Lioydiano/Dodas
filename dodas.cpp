@@ -342,21 +342,23 @@ int main(int argc, char** argv) {
             bullet->move();
             // debug << "\t\tAfter move" << std::endl;
         }
-        // debug << "\tAfter bullets" << std::endl;
+        removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
+        removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
+        debug << "\tAfter bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
+            if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
-        // debug << "\tAfter enemy bullets deletion" << std::endl;
+        debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
+            if (bullet == nullptr) continue;
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
-        // debug << "\tAfter bullets deletion" << std::endl;
-        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
-        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
+        debug << "\tAfter bullets deletion" << std::endl;
         for (unsigned j=0; j<EnemyBullet::enemyBullets.size(); j++) {
             if (j >= EnemyBullet::enemyBullets.size()) break;
             std::shared_ptr<EnemyBullet> enemyBullet = EnemyBullet::enemyBullets[j];
@@ -364,19 +366,24 @@ int main(int argc, char** argv) {
             if (enemyBullet->collided) continue;
             enemyBullet->move();
         }
-        // debug << "\tAfter enemy bullets" << std::endl;
+        debug << "\tAfter enemy bullets" << std::endl;
+        
+        removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
+        removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
+            if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
-        // debug << "\tAfter enemy bullets deletion" << std::endl;
+        debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
+            if (bullet == nullptr) continue;
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
-        // debug << "\tAfter bullets deletion" << std::endl;
+        debug << "\tAfter bullets deletion" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Zombie::zombies);
         for (auto zombie : Zombie::zombies) {
@@ -661,16 +668,37 @@ sista::ANSISettings Bullet::bulletStyle = {
     sista::Attribute::BRIGHT
 };
 void Bullet::removeBullet(std::shared_ptr<Bullet> bullet) {
+    #if DEBUG
+    debug << "Removing bullet " << bullet << std::endl;
+    debug << "\tAt coordinates {" << bullet->getCoordinates().y << ", " << bullet->getCoordinates().x << "}" << std::endl;
+    debug << "\tAddress: " << bullet.get() << std::endl;
+    debug << "\tIsNull: " << (int)(bullet.get() == nullptr) << std::endl;
+    debug << "\tShared pointer use count: " << bullet.use_count() << std::endl;
+    debug << "\tBefore removal there are " << Bullet::bullets.size() << " bullets" << std::endl;
+    #endif
     Bullet::bullets.erase(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
     field->erasePawn(bullet.get());
+    #if DEBUG
+    debug << "\tAfter removal there are " << Bullet::bullets.size() << " bullets" << std::endl;
+    #endif
 }
 void Bullet::removeBullet(Bullet* bullet) {
+    #if DEBUG
+    debug << "Removing bullet " << bullet << std::endl;
+    debug << "\tAt coordinates {" << bullet->getCoordinates().y << ", " << bullet->getCoordinates().x << "}" << std::endl;
+    debug << "\tAddress: " << bullet << std::endl;
+    debug << "\tIsNull: " << (int)(bullet == nullptr) << std::endl;
+    debug << "\tBefore removal there are " << Bullet::bullets.size() << " bullets" << std::endl;
+    #endif
     auto it = std::find_if(Bullet::bullets.begin(), Bullet::bullets.end(),
         [bullet](const std::shared_ptr<Bullet>& b) { return b.get() == bullet; });
     if (it != Bullet::bullets.end()) {
         Bullet::bullets.erase(it);
         field->erasePawn(bullet);
     }
+    #if DEBUG
+    debug << "\tAfter removal there are " << Bullet::bullets.size() << " bullets" << std::endl;
+    #endif
 }
 Bullet::Bullet() : Entity(' ', {0, 0}, bulletStyle, Type::BULLET), direction(Direction::RIGHT), speed(1) {}
 Bullet::Bullet(sista::Coordinates coordinates, Direction direction) : Entity(directionSymbol[direction], coordinates, bulletStyle, Type::BULLET), direction(direction), speed(1) {}
@@ -709,9 +737,9 @@ void Bullet::move() {
             Walker::removeWalker((Walker*)hitten);
             // debug << "\tWalker removed" << std::endl;
         } else if (hitten->type == Type::BULLET) {
-            // debug << "\tBullet" << std::endl;
+            debug << "\tBullet" << std::endl;
             ((Bullet*)hitten)->collided = true;
-            // debug << "\tBullet collided" << std::endl;
+            debug << "\tBullet" << hitten << " collided" << std::endl;
             // Bullet::removeBullet((Bullet*)hitten);
             return;
         } else if (hitten->type == Type::ENEMYBULLET) {
@@ -747,9 +775,9 @@ void Bullet::move() {
                 end = true;
             }
         }
-        // debug << "\tAfter collision" << std::endl;
+        debug << "\tAfter collision" << std::endl;
         Bullet::removeBullet(this);
-        // debug << "\tAfter remove" << std::endl;
+        debug << "\tAfter remove" << std::endl;
     }
 }
 
@@ -1462,10 +1490,52 @@ void Walker::explode() {
 }
 
 void removeNullptrs(std::vector<std::shared_ptr<Entity>>& entities) {
+    #if DEBUG
+    unsigned before = entities.size();
+    debug << "Before removing nullptrs: " << before << "\n";
+    #endif
+    entities.erase(
+        std::remove(entities.begin(), entities.end(), nullptr),
+        entities.end()
+    );
+    #if DEBUG
+    unsigned after = entities.size();
+    debug << "After removing nullptrs: " << after << "\n";
+    debug << "Removed " << before - after << " nullptrs\n";
+    #endif
+    entities.erase(
+        std::remove_if(entities.begin(), entities.end(),
+            [](const std::shared_ptr<Entity>& entity) { return entity == nullptr; }),
+        entities.end()
+    );
+    #if DEBUG
+    unsigned after2 = entities.size();
+    debug << "After removing nullptrs (method 2): " << after2 << "\n";
+    debug << "Removed " << after - after2 << " nullptrs\n";
+    #endif
+    // C++11 way
+    for (std::vector<std::shared_ptr<Entity>>::iterator it = entities.begin(); it != entities.end(); ) {
+        if (*it == nullptr) {
+            it = entities.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    #if DEBUG
+    unsigned after3 = entities.size();
+    debug << "After removing nullptrs (method 3): " << after3 << "\n";
+    debug << "Removed " << after2 - after3 << " nullptrs\n";
+    #endif
     for (unsigned i=0; i<entities.size(); i++) {
         if (entities[i] == nullptr) {
             entities.erase(entities.begin() + i);
             i--;
         }
     }
+    #if DEBUG
+    unsigned after4 = entities.size();
+    debug << "After removing nullptrs (method 4): " << after4 << "\n";
+    debug << "Removed " << after3 - after4 << " nullptrs\n";
+    debug << "Total removed nullptrs: " << before - after4 << "\n";
+    #endif
 }
