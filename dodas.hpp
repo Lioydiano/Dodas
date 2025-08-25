@@ -14,11 +14,11 @@
 
 #define START_AMMONITION 10
 
-#define DEBUG 1
+#define DEBUG 0
 #define INTRO 1
-#define SCAN_FOR_NULLPTRS 1
-#define VERSION "1.0.0-alpha"
-#define DATE "2025-08-25"
+#define SCAN_FOR_NULLPTRS 0
+#define VERSION "1.0.0-alpha.1"
+#define DATE "2025-08-26"
 
 #define WIN_API_MUSIC_DELAY 80
 #define REPOPULATE 127 // The number of frame before the whole sista::Field is emptied and repopulated

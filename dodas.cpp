@@ -344,21 +344,21 @@ int main(int argc, char** argv) {
         }
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
-        debug << "\tAfter bullets" << std::endl;
+        // debug << "\tAfter bullets" << std::endl;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
             if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
-        debug << "\tAfter enemy bullets deletion" << std::endl;
+        // debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
             if (bullet == nullptr) continue;
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
-        debug << "\tAfter bullets deletion" << std::endl;
+        // debug << "\tAfter bullets deletion" << std::endl;
         for (unsigned j=0; j<EnemyBullet::enemyBullets.size(); j++) {
             if (j >= EnemyBullet::enemyBullets.size()) break;
             std::shared_ptr<EnemyBullet> enemyBullet = EnemyBullet::enemyBullets[j];
@@ -366,7 +366,7 @@ int main(int argc, char** argv) {
             if (enemyBullet->collided) continue;
             enemyBullet->move();
         }
-        debug << "\tAfter enemy bullets" << std::endl;
+        // debug << "\tAfter enemy bullets" << std::endl;
         
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
@@ -376,14 +376,14 @@ int main(int argc, char** argv) {
                 EnemyBullet::removeEnemyBullet(enemyBullet);
             }
         }
-        debug << "\tAfter enemy bullets deletion" << std::endl;
+        // debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
             if (bullet == nullptr) continue;
             if (bullet->collided) {
                 Bullet::removeBullet(bullet);
             }
         }
-        debug << "\tAfter bullets deletion" << std::endl;
+        // debug << "\tAfter bullets deletion" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Zombie::zombies);
         for (auto zombie : Zombie::zombies) {
@@ -737,9 +737,9 @@ void Bullet::move() {
             Walker::removeWalker((Walker*)hitten);
             // debug << "\tWalker removed" << std::endl;
         } else if (hitten->type == Type::BULLET) {
-            debug << "\tBullet" << std::endl;
+            // debug << "\tBullet" << std::endl;
             ((Bullet*)hitten)->collided = true;
-            debug << "\tBullet" << hitten << " collided" << std::endl;
+            // debug << "\tBullet" << hitten << " collided" << std::endl;
             // Bullet::removeBullet((Bullet*)hitten);
             return;
         } else if (hitten->type == Type::ENEMYBULLET) {
@@ -775,9 +775,9 @@ void Bullet::move() {
                 end = true;
             }
         }
-        debug << "\tAfter collision" << std::endl;
+        // debug << "\tAfter collision" << std::endl;
         Bullet::removeBullet(this);
-        debug << "\tAfter remove" << std::endl;
+        // debug << "\tAfter remove" << std::endl;
     }
 }
 
