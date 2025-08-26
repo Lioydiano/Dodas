@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
             sista::Attribute::BRIGHT
         }
     );
+    std::default_random_engine rng(std::chrono::system_clock::now().time_since_epoch().count());
     // Default settings
     bool unofficial = false;
     bool music = true;
