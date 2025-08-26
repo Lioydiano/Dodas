@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
             sista::Attribute::BRIGHT
         }
     );
+    // Default settings
     bool unofficial = false;
     bool music = true;
     bool endless = false;
@@ -239,8 +240,12 @@ int main(int argc, char** argv) {
                 try {
                     char buf[1024];
                     snprintf(buf, 1024, "afplay \"audio/%s.mp3\"", track.c_str());
-                    system(buf);
+                    if (system(buf))
+                        throw std::runtime_error("afplay not found");
                 } catch (std::exception& e) {
+                    #if DEBUG
+                    debug << e.what() << std::endl;
+                    #endif
                     return; // If the music can't be played, the thread ends
                 }
                 while (pause_) {
@@ -281,12 +286,26 @@ int main(int argc, char** argv) {
                 n = (rand() % genresSize_[genre]) + 1;
                 std::string track = ((std::string)"audio/") + genres[genre] + std::to_string(n) + (std::string)".ogg";
                 try {
-                    system(("canberra-gtk-play -f " + track).c_str());
+                    if (system(("ffplay -v 0 -nodisp -autoexit " + track).c_str())) {
+                        throw std::runtime_error("ffplay not found");
+                    }
                 } catch (std::exception& e) {
-                    #if DEBUG
-                    debug << e.what() << std::endl;
-                    #endif
-                    return; // If the music can't be played, the thread ends
+                    std::string wavTrack = genres[genre] + std::to_string(n);
+                    try {
+                        char buf[1024];
+                        snprintf(buf, 1024, "aplay \"audio/%s.wav\"", wavTrack.c_str());
+                        if (system(buf)) {
+                            #if DEBUG
+                            debug << e.what() << std::endl;
+                            #endif
+                            throw std::runtime_error("aplay not found");
+                        }
+                    } catch (std::exception& e) {
+                        #if DEBUG
+                        debug << e.what() << std::endl;
+                        #endif
+                        return; // If the music can't be played, the thread ends
+                    }
                 }
                 while (pause_) {
                     if (end) return;
