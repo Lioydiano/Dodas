@@ -110,14 +110,17 @@ You must kill the queen as fast as possible, because the zombies will keep spawn
 
 ### Weapons
 
-You can select different weapons by pressing the following keys:
+You can select different "weapons" by pressing the following keys:
 
-- `p` to select bullets (`P` also works)
-- `m` to select mines (`M` also works)
-- `c` to select cannons (`C` also works)
-- `b` to select bombers (`B` also works)
-- `W` to select workers
-- `=` to select walls (`0` also works)
+- `b` to select **b**ullets (`B` also works)
+- `m` to select **m**ines (`M` also works)
+- `c` to select **c**annons (`C` also works)
+- `e` to select **e**xploding bombers (`B` also works)
+- `g` to select workers, **g**atherers (`W` and `G` also work)
+- `u` to select **u**pgraded armed workers (`U` also works)
+- `=` to select walls (`0` and `#` also work)
+
+A "weapon" is not really a weapon, but rather an entity that you can place on the field.
 
 ### Ammunition
 
@@ -129,6 +132,7 @@ Each weapon has a different ammunition cost:
 - Workers: 5
 - Cannons: 5
 - Bombers: 7
+- Armed Workers: 8
 
 ## Entities
 

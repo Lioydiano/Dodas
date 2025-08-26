@@ -17,8 +17,8 @@
 #define DEBUG 0
 #define INTRO 1
 #define SCAN_FOR_NULLPTRS 0
-#define VERSION "1.0.0-alpha.3"
-#define DATE "2025-08-26"
+#define VERSION "1.0.0-alpha.4"
+#define DATE "2025-08-27"
 
 #if DEBUG
     #undef START_AMMONITION
