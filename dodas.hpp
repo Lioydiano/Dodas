@@ -14,11 +14,20 @@
 
 #define START_AMMONITION 10
 
-#define DEBUG 0
+#define DEBUG 1
 #define INTRO 1
 #define SCAN_FOR_NULLPTRS 0
 #define VERSION "1.0.0-alpha.1"
 #define DATE "2025-08-26"
+
+#if DEBUG
+    #undef START_AMMONITION
+        #define START_AMMONITION 500
+    #undef INTRO
+        #define INTRO 0
+    #undef SCAN_FOR_NULLPTRS
+        #define SCAN_FOR_NULLPTRS 1
+#endif
 
 #define WIN_API_MUSIC_DELAY 80
 #define REPOPULATE 127 // The number of frame before the whole sista::Field is emptied and repopulated
@@ -214,6 +223,7 @@ class Bomber : public Entity { // Bombers go towards the enemies and explode whe
 public:
     static sista::ANSISettings bomberStyle;
     static std::vector<std::shared_ptr<Bomber>> bombers;
+    bool exploded = false;
 
     Bomber();
     Bomber(sista::Coordinates);
@@ -230,6 +240,7 @@ public:
     static sista::ANSISettings walkerStyle;
     static std::vector<std::shared_ptr<Walker>> walkers;
     static std::bernoulli_distribution distribution; // The walker moves a cell every walkerSpeed frames, on average
+    bool exploded = false;
 
     Walker();
     Walker(sista::Coordinates);
