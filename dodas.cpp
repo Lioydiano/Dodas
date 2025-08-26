@@ -1395,8 +1395,7 @@ void Bomber::move() {
         field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
         explode();
     } else if (neighbor->type == Type::PLAYER) {
-        // lose();
-        end = true;
+        return; // The player keeps the bomber in place
     } else if (neighbor->type == Type::BULLET) {
         ((Bullet*)neighbor)->collided = true;
     } else if (neighbor->type == Type::ENEMYBULLET) {
