@@ -330,6 +330,7 @@ int main(int argc, char** argv) {
             // debug << "\tBullet " << j << ": " << Bullet::bullets[j] << std::endl;
         }
         #endif
+        std::vector<std::vector<std::shared_ptr<Bullet>>::iterator> bulletsToRemoveByIt;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
             if (j >= Bullet::bullets.size()) break;
@@ -337,7 +338,11 @@ int main(int argc, char** argv) {
             std::shared_ptr<Bullet> bullet = Bullet::bullets[j];
             if (bullet == nullptr) continue;
             // debug << "\t\tNot nullptr " << bullet << std::endl;
-            if (bullet->collided) continue;
+            if (bullet->collided) {
+                // debug << "\t\tCollided" << std::endl;
+                bulletsToRemoveByIt.push_back(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
+                continue;
+            }
             // debug << "\t\tNot collided" << std::endl;
             bullet->move();
             // debug << "\t\tAfter move" << std::endl;
@@ -345,45 +350,44 @@ int main(int argc, char** argv) {
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         // debug << "\tAfter bullets" << std::endl;
+        std::vector<std::vector<std::shared_ptr<EnemyBullet>>::iterator> enemyBulletsToRemoveByIt;
         for (auto enemyBullet : EnemyBullet::enemyBullets) {
-            if (enemyBullet == nullptr) continue;
+            // if (enemyBullet == nullptr) continue;
             if (enemyBullet->collided) {
-                EnemyBullet::removeEnemyBullet(enemyBullet);
+                enemyBulletsToRemoveByIt.push_back(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), enemyBullet));
             }
         }
+        for (auto it : enemyBulletsToRemoveByIt) {
+            EnemyBullet::removeEnemyBullet(*it);
+        }
+        enemyBulletsToRemoveByIt.clear();
         // debug << "\tAfter enemy bullets deletion" << std::endl;
         for (auto bullet : Bullet::bullets) {
-            if (bullet == nullptr) continue;
+            // if (bullet == nullptr) continue;
             if (bullet->collided) {
-                Bullet::removeBullet(bullet);
+                bulletsToRemoveByIt.push_back(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
             }
         }
+        for (auto it : bulletsToRemoveByIt) {
+            Bullet::removeBullet(*it);
+        }
+        bulletsToRemoveByIt.clear();
         // debug << "\tAfter bullets deletion" << std::endl;
         for (unsigned j=0; j<EnemyBullet::enemyBullets.size(); j++) {
             if (j >= EnemyBullet::enemyBullets.size()) break;
             std::shared_ptr<EnemyBullet> enemyBullet = EnemyBullet::enemyBullets[j];
             if (enemyBullet == nullptr) continue;
-            if (enemyBullet->collided) continue;
+            if (enemyBullet->collided) {
+                enemyBulletsToRemoveByIt.push_back(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), enemyBullet));
+                continue;
+            }
             enemyBullet->move();
         }
-        // debug << "\tAfter enemy bullets" << std::endl;
-        
-        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
-        // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
-        for (auto enemyBullet : EnemyBullet::enemyBullets) {
-            if (enemyBullet == nullptr) continue;
-            if (enemyBullet->collided) {
-                EnemyBullet::removeEnemyBullet(enemyBullet);
-            }
+        for (auto it : enemyBulletsToRemoveByIt) {
+            EnemyBullet::removeEnemyBullet(*it);
         }
-        // debug << "\tAfter enemy bullets deletion" << std::endl;
-        for (auto bullet : Bullet::bullets) {
-            if (bullet == nullptr) continue;
-            if (bullet->collided) {
-                Bullet::removeBullet(bullet);
-            }
-        }
-        // debug << "\tAfter bullets deletion" << std::endl;
+        enemyBulletsToRemoveByIt.clear();
+
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Zombie::zombies);
         for (auto zombie : Zombie::zombies) {
@@ -397,9 +401,19 @@ int main(int argc, char** argv) {
                 zombie->shoot();
         // debug << "\tAfter zombies shooting" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Walker::walkers);
-        for (auto walker : Walker::walkers)
+        std::vector<std::vector<std::shared_ptr<Walker>>::iterator> walkersToRemoveByIt;
+        for (auto walker : Walker::walkers) {
+            if (walker->exploded) {
+                walkersToRemoveByIt.push_back(std::find(Walker::walkers.begin(), Walker::walkers.end(), walker));
+                continue;
+            }
             if (Walker::distribution(rng))
                 walker->move();
+        }
+        for (auto it : walkersToRemoveByIt) {
+            Walker::removeWalker(*it);
+        }
+        walkersToRemoveByIt.clear();
         // debug << "\tAfter walkers" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Mine::mines);
         for (auto mine : Mine::mines)
@@ -427,11 +441,29 @@ int main(int argc, char** argv) {
         }
         // debug << "\tAfter cannons" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bomber::bombers);
+        std::vector<std::vector<std::shared_ptr<Bomber>>::iterator> bombersToRemoveByIt;
+        for (auto bomber : Bomber::bombers) {
+            if (bomber->exploded) {
+                bombersToRemoveByIt.push_back(std::find(Bomber::bombers.begin(), Bomber::bombers.end(), bomber));
+            }
+        }
+        for (auto it : bombersToRemoveByIt) {
+            Bomber::removeBomber(*it);
+        }
+        bombersToRemoveByIt.clear();
         for (unsigned j = 0; j < Bomber::bombers.size(); j++) {
             std::shared_ptr<Bomber> bomber = Bomber::bombers[j];
             if (bomber == nullptr) continue;
+            if (bomber->exploded) {
+                bombersToRemoveByIt.push_back(std::find(Bomber::bombers.begin(), Bomber::bombers.end(), bomber));
+                continue;
+            }
             bomber->move();
         }
+        for (auto it : bombersToRemoveByIt) {
+            Bomber::removeBomber(*it);
+        }
+        bombersToRemoveByIt.clear();
         // debug << "\tAfter bombers" << std::endl;
         try {
             Queen::queen->move();
@@ -707,7 +739,7 @@ void Bullet::move() {
     sista::Coordinates nextCoordinates = coordinates + directionMap[direction]*speed;
     if (field->isOutOfBounds(nextCoordinates)) {
         // debug << "Out of bounds" << std::endl;
-        Bullet::removeBullet(this);
+        this->collided = true; // Marking for removal
         // debug << "After remove" << std::endl;
         return;
     } else if (field->isFree(nextCoordinates)) {
@@ -776,7 +808,7 @@ void Bullet::move() {
             }
         }
         // debug << "\tAfter collision" << std::endl;
-        Bullet::removeBullet(this);
+        this->collided = true; // Marking for removal
         // debug << "\tAfter remove" << std::endl;
     }
 }
@@ -806,7 +838,7 @@ void EnemyBullet::removeEnemyBullet(EnemyBullet* enemyBullet) {
 void EnemyBullet::move() { // Pretty sure there's a segfault here
     sista::Coordinates nextCoordinates = coordinates + directionMap[direction]*speed;
     if (field->isOutOfBounds(nextCoordinates)) {
-        EnemyBullet::removeEnemyBullet(this);
+        this->collided = true; // Mark for removal
         return;
     } else if (field->isFree(nextCoordinates)) {
         field->movePawn(this, nextCoordinates);
@@ -846,7 +878,7 @@ void EnemyBullet::move() { // Pretty sure there's a segfault here
         } else if (hitten->type == Type::BOMBER) {
             Bomber::removeBomber((Bomber*)hitten);
         }
-        EnemyBullet::removeEnemyBullet(this);
+        this->collided = true; // Mark for removal
     }
 }
 
@@ -1059,7 +1091,7 @@ Wall::Wall() : Entity('=', {0, 0}, wallStyle, Type::WALL), strength(3) {}
 sista::ANSISettings Mine::mineStyle = {
     sista::ForegroundColor::MAGENTA,
     sista::BackgroundColor::BLACK,
-    sista::Attribute::BLINK   
+    sista::Attribute::BLINK
 };
 void Mine::removeMine(std::shared_ptr<Mine> mine) {
     Mine::mines.erase(std::find(Mine::mines.begin(), Mine::mines.end(), mine));
@@ -1088,6 +1120,8 @@ void Mine::trigger() {
     triggered = true;
     symbol = '%';
     settings.foregroundColor = sista::ForegroundColor::WHITE;
+    settings.attribute = sista::Attribute::BRIGHT;
+    field->rePrintPawn(this);
 }
 void Mine::explode() {
     for (int j=-2; j<=2; j++) {
@@ -1293,7 +1327,7 @@ void Bomber::move() {
         if (coordinates.x == 49) {
             this->explode();
         }
-        Bomber::removeBomber(this);
+        this->exploded = true; // Mark for removal
         return;
     }
     Entity* neighbor = (Entity*)field->getPawn(nextCoordinates);
@@ -1331,7 +1365,7 @@ void Bomber::move() {
     } else if (neighbor->type == Type::BOMBER) {
         return;
     }
-    Bomber::removeBomber(this);
+    this->exploded = true; // Mark for removal
 }
 void Bomber::explode() {
     for (int j=-2; j<=2; j++) {
@@ -1405,7 +1439,7 @@ void Walker::move() { // Walkers mostly move horizontally because they only rare
         if (coordinates.x == 0) { // Touchdown, the player loses all the ammonitions
             Player::player->ammonitions = 0;
             this->explode();
-            Walker::removeWalker(this);
+            this->exploded = true; // Mark for removal
             return;
         } else { // Touched bottom limit, we can use pacman effect which clearly can be used by walkers
             try {
@@ -1426,7 +1460,7 @@ void Walker::move() { // Walkers mostly move horizontally because they only rare
         end = true;
     } else if (neighbor->type == Type::BULLET) {
         Bullet::removeBullet((Bullet*)neighbor);
-        Walker::removeWalker(this);
+        this->exploded = true; // Mark for removal
     } else if (neighbor->type == Type::WALL) {
         Wall* wall = (Wall*)neighbor;
         if (wall->strength == 0) {
