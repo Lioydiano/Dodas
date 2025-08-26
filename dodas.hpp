@@ -14,10 +14,10 @@
 
 #define START_AMMONITION 10
 
-#define DEBUG 1
+#define DEBUG 0
 #define INTRO 1
 #define SCAN_FOR_NULLPTRS 0
-#define VERSION "1.0.0-alpha.1"
+#define VERSION "1.0.0-alpha.2"
 #define DATE "2025-08-26"
 
 #if DEBUG

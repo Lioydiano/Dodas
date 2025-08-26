@@ -223,7 +223,6 @@ int main(int argc, char** argv) {
             {"ML1", 4}, {"ML2", 6}, {"ML3", 6}, {"ML4", 6},
             {"P1", 4}, {"P2", 8}, {"P3", 6}, {"P4", 6}
         };
-        // debug << "Before music thread" << std::endl;
         music_th = std::thread([&]() {
             int n, genre;
             #ifdef __APPLE__
@@ -235,11 +234,8 @@ int main(int argc, char** argv) {
             }
             while (!end) {
                 genre = extendedProb[rand() % extendedProb.size()];
-                // debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize_[genre]) + 1;
-                // debug << "n: " << n << std::endl;
                 std::string track = genres[genre] + std::to_string(n);
-                // debug << "Playing " << track << std::endl;
                 try {
                     char buf[1024];
                     snprintf(buf, 1024, "afplay \"audio/%s.mp3\"", track.c_str());
@@ -259,29 +255,20 @@ int main(int argc, char** argv) {
                 {0, 4, 8, 6, 6}
             };
             while (!end) {
-                // debug << "Before genre" << std::endl;
                 genre = genresDistribution(rng);
-                // debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize_[genre]) + 1;
-                // debug << "n: " << n << std::endl;
                 std::string track = genres[genre] + std::to_string(n);
                 try {
                     mciSendString((LPCSTR)("play audio/" + track + ".wav").c_str(), NULL, 0, NULL);
-                    // debug << "After PlaySound" << std::endl;
                     int wait = length[genre][n];
                     wait *= 1000;
                     wait -= WIN_API_MUSIC_DELAY; // Some time is wasted in API calls, so we have to compensate for that
                     std::this_thread::sleep_for(std::chrono::milliseconds(wait));
-                    // debug << "Already slept for " << wait << " seconds" << std::endl;
                 } catch (std::exception& e) {
-                    // debug << "Exception" << std::endl;
-                    // debug << e.what() << std::endl;
                     return; // If the music can't be played, the thread ends
                 }
                 if (pause_) {
-                    // debug << "Pausing" << std::endl;
                     PlaySound(NULL, 0, 0);
-                    // debug << "Paused" << std::endl;
                     // break;
                 }
                 while (pause_) {
@@ -291,13 +278,10 @@ int main(int argc, char** argv) {
             #elif __linux__
             while (!end) {
                 genre = genresDistribution(rng);
-                // debug << "Genre: " << genre << std::endl;
                 n = (rand() % genresSize_[genre]) + 1;
-                // debug << "n: " << n << std::endl;
                 std::string track = ((std::string)"audio/") + genres[genre] + std::to_string(n) + (std::string)".ogg";
                 try {
                     system(("canberra-gtk-play -f " + track).c_str());
-                    // debug << "After canberra-gtk-play" << std::endl;
                 } catch (std::exception& e) {
                     #if DEBUG
                     debug << e.what() << std::endl;
@@ -305,7 +289,6 @@ int main(int argc, char** argv) {
                     return; // If the music can't be played, the thread ends
                 }
                 while (pause_) {
-                    // debug << "Pausing" << std::endl;
                     if (end) return;
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
@@ -324,12 +307,7 @@ int main(int argc, char** argv) {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::lock_guard<std::mutex> lock(inputOutputMutex);
-        // debug << "Frame: " << i << std::endl;
-        #if DEBUG
-        for (unsigned j=0; j<Bullet::bullets.size(); j++) {
-            // debug << "\tBullet " << j << ": " << Bullet::bullets[j] << std::endl;
-        }
-        #endif
+
         Bullet::bullets.erase(
             std::remove_if(
                 Bullet::bullets.begin(),
@@ -349,14 +327,10 @@ int main(int argc, char** argv) {
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
             if (j >= Bullet::bullets.size()) break;
-            // debug << "\tBullet " << j << std::endl;
             std::shared_ptr<Bullet> bullet = Bullet::bullets[j];
             if (bullet == nullptr) continue;
-            // debug << "\t\tNot nullptr " << bullet << std::endl;
             if (bullet->collided) continue;
-            // debug << "\t\tNot collided" << std::endl;
             bullet->move();
-            // debug << "\t\tAfter move" << std::endl;
         }
         Bullet::bullets.erase(
             std::remove_if(
@@ -376,7 +350,6 @@ int main(int argc, char** argv) {
         );
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
-        // debug << "\tAfter bullets" << std::endl;
         EnemyBullet::enemyBullets.erase(
             std::remove_if(
                 EnemyBullet::enemyBullets.begin(),
@@ -393,7 +366,6 @@ int main(int argc, char** argv) {
             ),
             EnemyBullet::enemyBullets.end()
         );
-        // debug << "\tAfter bullets deletion" << std::endl;
         for (unsigned j=0; j<EnemyBullet::enemyBullets.size(); j++) {
             if (j >= EnemyBullet::enemyBullets.size()) break;
             std::shared_ptr<EnemyBullet> enemyBullet = EnemyBullet::enemyBullets[j];
@@ -424,12 +396,10 @@ int main(int argc, char** argv) {
             if (Zombie::distribution(rng))
                 zombie->move();
         }
-        // debug << "\tAfter zombies" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Walker::walkers);
         for (auto zombie : Zombie::zombies)
             if (Zombie::shootDistribution(rng))
                 zombie->shoot();
-        // debug << "\tAfter zombies shooting" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Walker::walkers);
         Walker::walkers.erase(
             std::remove_if(
@@ -468,11 +438,9 @@ int main(int argc, char** argv) {
             ),
             Walker::walkers.end()
         );
-        // debug << "\tAfter walkers" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Mine::mines);
         for (auto mine : Mine::mines)
             mine->checkTrigger();
-        // debug << "\tAfter mines" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Worker::workers);        
         std::vector<std::vector<unsigned short>> workersPositions(20, std::vector<unsigned short>()); // workersPositions[y] = {x1, x2, x3, ...} where the workers are
         for (auto worker : Worker::workers) {
@@ -480,7 +448,6 @@ int main(int argc, char** argv) {
             if (worker->distribution(rng))
                 worker->produce();
         }
-        // debug << "\tAfter workers" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Cannon::cannons);
         for (auto worker : ArmedWorker::armedWorkers) {
             if (worker->distribution(rng))
@@ -493,7 +460,6 @@ int main(int argc, char** argv) {
             if (cannon->distribution(rng))
                 cannon->fire();
         }
-        // debug << "\tAfter cannons" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bomber::bombers);
         Bomber::bombers.erase(
             std::remove_if(
@@ -517,32 +483,64 @@ int main(int argc, char** argv) {
             if (bomber->exploded) continue;
             bomber->move();
         }
-        // debug << "\tAfter bombers" << std::endl;
         try {
             Queen::queen->move();
         } catch (std::exception& e) {
             // Nothing to do here
         }
-        // debug << "\tAfter queen" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Wall::walls);
+        Wall::walls.erase(
+            std::remove_if(
+                Wall::walls.begin(),
+                Wall::walls.end(),
+                [](const std::shared_ptr<Wall>& wall) {
+                    if (!wall) return true;
+                    if (wall->strength == 0) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(wall.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            Wall::walls.end()
+        );
         for (unsigned j = 0; j < Wall::walls.size(); j++) {
             std::shared_ptr<Wall> wall = Wall::walls[j];
             if (wall == nullptr) continue;
-            if (wall->strength == 0) {
-                Wall::removeWall(wall);
-            }
+            if (wall->strength == 0) continue;
         }
-        // debug << "\tAfter walls" << std::endl;
+        Wall::walls.erase(
+            std::remove_if(
+                Wall::walls.begin(),
+                Wall::walls.end(),
+                [](const std::shared_ptr<Wall>& wall) {
+                    if (!wall) return true;
+                    if (wall->strength == 0) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(wall.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            Wall::walls.end()
+        );
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
+        std::vector<std::vector<std::shared_ptr<Mine>>::iterator> minesToRemove; // We can't remove mines while iterating over them, so we store the iterators of the mines to remove
         for (unsigned j=0; j<Mine::mines.size(); j++) {
             if (j >= Mine::mines.size()) break;
             if (Mine::mines[j] == nullptr) continue;
             if (Mine::mines[j]->triggered) {
                 Mine::mines[j]->explode();
-                Mine::removeMine(Mine::mines[j]);
+                minesToRemove.push_back(Mine::mines.begin() + j);
             }
         }
-        // debug << "\tAfter mines explosion" << std::endl;
+        for (auto it : minesToRemove) {
+            Mine::mines.erase(it);
+            field->erasePawn((*it).get());
+        }
+        minesToRemove.clear();
 
         if (i % 100 == 0) {
             unsigned short y = rand() % 20;
@@ -552,7 +550,6 @@ int main(int argc, char** argv) {
                 field->addPrintPawn(walker);
             }
         }
-        // debug << "\tAfter walkers spawning" << std::endl;
         if (i % 200 == 0) {
             unsigned short y = rand() % 20;
             if (Queen::queen->getCoordinates().y != y) {
@@ -561,7 +558,6 @@ int main(int argc, char** argv) {
                 field->addPrintPawn(zombie);
             }
         }
-        // debug << "\tAfter zombies spawning" << std::endl;
         if (hardcore) {
             // The point of the game is to survive as long as possible, so the spawning rate of the enemies increases over time
             // The hordes of enemies are spawned every 500 frames, but the number of enemies in each horde increases over time
@@ -672,11 +668,9 @@ int main(int argc, char** argv) {
                 }
             }
         }
-        // debug << "\tBefore erasing nullptrs" << std::endl;
         for (auto coord : coordinates) {
             field->erasePawn(coord);
         }
-        // debug << "\tAfter erasing nullptrs" << std::endl;
         #endif
     }
     if (music) {
@@ -791,78 +785,52 @@ Bullet::Bullet(sista::Coordinates coordinates, Direction direction, unsigned sho
 void Bullet::move() {
     sista::Coordinates nextCoordinates = coordinates + directionMap[direction]*speed;
     if (field->isOutOfBounds(nextCoordinates)) {
-        // debug << "Out of bounds" << std::endl;
         this->collided = true; // Marking for removal
-        // debug << "After remove" << std::endl;
         return;
     } else if (field->isFree(nextCoordinates)) {
-        // debug << "Free" << std::endl;
         field->movePawn(this, nextCoordinates);
-        // debug << "After move" << std::endl;
         coordinates = nextCoordinates;
         return;
     } else { // Something was hitten
         Entity* hitten = (Entity*)field->getPawn(nextCoordinates);
-        // debug << "Hitten " << hitten << std::endl;
         if (hitten->type == Type::WALL) {
-            // debug << "\tWall" << std::endl;
             Wall* wall = (Wall*)hitten;
             wall->strength--;
-            // debug << "\tWall's strength: " << wall->strength << std::endl;
             if (wall->strength == 0) {
                 wall->setSymbol('@'); // Change the symbol to '@' to indicate that the wall was destroyed
                 field->rePrintPawn(wall); // It will be reprinted in the next frame and then removed because of (strength == 0)
             }
         } else if (hitten->type == Type::ZOMBIE) {
-            // debug << "\tZombie" << std::endl;
             Zombie::removeZombie((Zombie*)hitten);
-            // debug << "\tZombie removed" << std::endl;
         } else if (hitten->type == Type::WALKER) {
-            // debug << "\tWalker" << std::endl;
             Walker::removeWalker((Walker*)hitten);
-            // debug << "\tWalker removed" << std::endl;
         } else if (hitten->type == Type::BULLET) {
-            // debug << "\tBullet" << std::endl;
             ((Bullet*)hitten)->collided = true;
-            // debug << "\tBullet" << hitten << " collided" << std::endl;
             // Bullet::removeBullet((Bullet*)hitten);
             return;
         } else if (hitten->type == Type::ENEMYBULLET) {
             // When two bullets collide, their "collided" attribute is set to true
-            // debug << "\tEnemy bullet" << std::endl;
             ((EnemyBullet*)hitten)->collided = true;
-            // debug << "\tEnemy bullet collided" << std::endl;
             collided = true;
-            // debug << "\tBullet collided" << std::endl;
             return;
         } else if (hitten->type == Type::MINE) {
-            // debug << "\tMine" << std::endl;
             Mine* mine = (Mine*)hitten;
             mine->triggered = true;
-            // debug << "\tMine triggered" << std::endl;
         } else if (hitten->type == Type::CANNON) {
-            // debug << "\tCannon" << std::endl;
             Cannon* cannon = (Cannon*)hitten;
             // Makes the cannon fire
-            // debug << "\tCannon firing" << std::endl;
             cannon->fire();
-            // debug << "\tCannon fired" << std::endl;
         } else if (hitten->type == Type::QUEEN) {
-            // debug << "\tQueen" << std::endl;
             Queen* mother = (Queen*)hitten;
             mother->life--;
-            // debug << "\tQueen's life: " << mother->life << std::endl;
             field->rePrintPawn(mother);
             mother->createWall();
-            // debug << "\tQueen's wall created" << std::endl;
             if (mother->life == 0) {
                 // win();
                 end = true;
             }
         }
-        // debug << "\tAfter collision" << std::endl;
         this->collided = true; // Marking for removal
-        // debug << "\tAfter remove" << std::endl;
     }
 }
 
@@ -1588,40 +1556,5 @@ void removeNullptrs(std::vector<std::shared_ptr<Entity>>& entities) {
     unsigned after = entities.size();
     debug << "After removing nullptrs: " << after << "\n";
     debug << "Removed " << before - after << " nullptrs\n";
-    #endif
-    entities.erase(
-        std::remove_if(entities.begin(), entities.end(),
-            [](const std::shared_ptr<Entity>& entity) { return entity == nullptr; }),
-        entities.end()
-    );
-    #if DEBUG
-    unsigned after2 = entities.size();
-    debug << "After removing nullptrs (method 2): " << after2 << "\n";
-    debug << "Removed " << after - after2 << " nullptrs\n";
-    #endif
-    // C++11 way
-    for (std::vector<std::shared_ptr<Entity>>::iterator it = entities.begin(); it != entities.end(); ) {
-        if (*it == nullptr) {
-            it = entities.erase(it);
-        } else {
-            ++it;
-        }
-    }
-    #if DEBUG
-    unsigned after3 = entities.size();
-    debug << "After removing nullptrs (method 3): " << after3 << "\n";
-    debug << "Removed " << after2 - after3 << " nullptrs\n";
-    #endif
-    for (unsigned i=0; i<entities.size(); i++) {
-        if (entities[i] == nullptr) {
-            entities.erase(entities.begin() + i);
-            i--;
-        }
-    }
-    #if DEBUG
-    unsigned after4 = entities.size();
-    debug << "After removing nullptrs (method 4): " << after4 << "\n";
-    debug << "Removed " << after3 - after4 << " nullptrs\n";
-    debug << "Total removed nullptrs: " << before - after4 << "\n";
     #endif
 }
