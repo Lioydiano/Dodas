@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
                 Player::player->shoot(Direction::UP);
                 break;
             }
-            case 'p': case 'P': { // "Projectile" or something
+            case 'b': case 'B': {
                 std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::BULLET;
                 break;
@@ -182,12 +182,12 @@ int main(int argc, char** argv) {
                 Player::player->weapon = Type::CANNON;
                 break;
             }
-            case 'b': case 'B': {
+            case 'e': case 'E': { // E for explosive
                 std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::BOMBER;
                 break;
             }
-            case 'W': {
+            case 'W': case 'g': case 'G': { // W for worker, g for gatherer
                 std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::WORKER;
                 break;
@@ -197,12 +197,12 @@ int main(int argc, char** argv) {
                 Player::player->weapon = Type::ARMED_WORKER;
                 break;
             }
-            case '=': case '0': {
+            case '=': case '0': case '#': {
                 std::lock_guard<std::mutex> lock(inputOutputMutex);
                 Player::player->weapon = Type::WALL;
                 break;
             }
-            case '.':
+            case '.': case 'p': case 'P': // Pause
                 pause_ = !pause_;
                 break;
             case 'Q': /* case 'q': */
