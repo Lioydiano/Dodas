@@ -330,7 +330,22 @@ int main(int argc, char** argv) {
             // debug << "\tBullet " << j << ": " << Bullet::bullets[j] << std::endl;
         }
         #endif
-        std::vector<std::vector<std::shared_ptr<Bullet>>::iterator> bulletsToRemoveByIt;
+        Bullet::bullets.erase(
+            std::remove_if(
+                Bullet::bullets.begin(),
+                Bullet::bullets.end(),
+                [](const std::shared_ptr<Bullet>& bullet) {
+                    if (!bullet) return true;
+                    if (bullet->collided) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(bullet.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            Bullet::bullets.end()
+        );
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         for (unsigned j=0; j<Bullet::bullets.size(); j++) {
             if (j >= Bullet::bullets.size()) break;
@@ -338,55 +353,70 @@ int main(int argc, char** argv) {
             std::shared_ptr<Bullet> bullet = Bullet::bullets[j];
             if (bullet == nullptr) continue;
             // debug << "\t\tNot nullptr " << bullet << std::endl;
-            if (bullet->collided) {
-                // debug << "\t\tCollided" << std::endl;
-                bulletsToRemoveByIt.push_back(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
-                continue;
-            }
+            if (bullet->collided) continue;
             // debug << "\t\tNot collided" << std::endl;
             bullet->move();
             // debug << "\t\tAfter move" << std::endl;
         }
+        Bullet::bullets.erase(
+            std::remove_if(
+                Bullet::bullets.begin(),
+                Bullet::bullets.end(),
+                [](const std::shared_ptr<Bullet>& bullet) {
+                    if (!bullet) return true;
+                    if (bullet->collided) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(bullet.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            Bullet::bullets.end()
+        );
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bullet::bullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         // debug << "\tAfter bullets" << std::endl;
-        std::vector<std::vector<std::shared_ptr<EnemyBullet>>::iterator> enemyBulletsToRemoveByIt;
-        for (auto enemyBullet : EnemyBullet::enemyBullets) {
-            // if (enemyBullet == nullptr) continue;
-            if (enemyBullet->collided) {
-                enemyBulletsToRemoveByIt.push_back(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), enemyBullet));
-            }
-        }
-        for (auto it : enemyBulletsToRemoveByIt) {
-            EnemyBullet::removeEnemyBullet(*it);
-        }
-        enemyBulletsToRemoveByIt.clear();
-        // debug << "\tAfter enemy bullets deletion" << std::endl;
-        for (auto bullet : Bullet::bullets) {
-            // if (bullet == nullptr) continue;
-            if (bullet->collided) {
-                bulletsToRemoveByIt.push_back(std::find(Bullet::bullets.begin(), Bullet::bullets.end(), bullet));
-            }
-        }
-        for (auto it : bulletsToRemoveByIt) {
-            Bullet::removeBullet(*it);
-        }
-        bulletsToRemoveByIt.clear();
+        EnemyBullet::enemyBullets.erase(
+            std::remove_if(
+                EnemyBullet::enemyBullets.begin(),
+                EnemyBullet::enemyBullets.end(),
+                [](const std::shared_ptr<EnemyBullet>& enemyBullet) {
+                    if (!enemyBullet) return true;
+                    if (enemyBullet->collided) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(enemyBullet.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            EnemyBullet::enemyBullets.end()
+        );
         // debug << "\tAfter bullets deletion" << std::endl;
         for (unsigned j=0; j<EnemyBullet::enemyBullets.size(); j++) {
             if (j >= EnemyBullet::enemyBullets.size()) break;
             std::shared_ptr<EnemyBullet> enemyBullet = EnemyBullet::enemyBullets[j];
             if (enemyBullet == nullptr) continue;
-            if (enemyBullet->collided) {
-                enemyBulletsToRemoveByIt.push_back(std::find(EnemyBullet::enemyBullets.begin(), EnemyBullet::enemyBullets.end(), enemyBullet));
-                continue;
-            }
+            if (enemyBullet->collided) continue;
             enemyBullet->move();
         }
-        for (auto it : enemyBulletsToRemoveByIt) {
-            EnemyBullet::removeEnemyBullet(*it);
-        }
-        enemyBulletsToRemoveByIt.clear();
+        EnemyBullet::enemyBullets.erase(
+            std::remove_if(
+                EnemyBullet::enemyBullets.begin(),
+                EnemyBullet::enemyBullets.end(),
+                [](const std::shared_ptr<EnemyBullet>& enemyBullet) {
+                    if (!enemyBullet) return true;
+                    if (enemyBullet->collided) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(enemyBullet.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            EnemyBullet::enemyBullets.end()
+        );
 
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)EnemyBullet::enemyBullets);
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Zombie::zombies);
@@ -401,19 +431,43 @@ int main(int argc, char** argv) {
                 zombie->shoot();
         // debug << "\tAfter zombies shooting" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Walker::walkers);
-        std::vector<std::vector<std::shared_ptr<Walker>>::iterator> walkersToRemoveByIt;
+        Walker::walkers.erase(
+            std::remove_if(
+                Walker::walkers.begin(),
+                Walker::walkers.end(),
+                [](const std::shared_ptr<Walker>& walker) {
+                    if (!walker) return true;
+                    if (walker->exploded) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(walker.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            Walker::walkers.end()
+        );
         for (auto walker : Walker::walkers) {
-            if (walker->exploded) {
-                walkersToRemoveByIt.push_back(std::find(Walker::walkers.begin(), Walker::walkers.end(), walker));
-                continue;
-            }
+            if (walker->exploded) continue;
             if (Walker::distribution(rng))
                 walker->move();
         }
-        for (auto it : walkersToRemoveByIt) {
-            Walker::removeWalker(*it);
-        }
-        walkersToRemoveByIt.clear();
+        Walker::walkers.erase(
+            std::remove_if(
+                Walker::walkers.begin(),
+                Walker::walkers.end(),
+                [](const std::shared_ptr<Walker>& walker) {
+                    if (!walker) return true;
+                    if (walker->exploded) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(walker.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            Walker::walkers.end()
+        );
         // debug << "\tAfter walkers" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Mine::mines);
         for (auto mine : Mine::mines)
@@ -441,29 +495,28 @@ int main(int argc, char** argv) {
         }
         // debug << "\tAfter cannons" << std::endl;
         // removeNullptrs((std::vector<std::shared_ptr<Entity>>&)Bomber::bombers);
-        std::vector<std::vector<std::shared_ptr<Bomber>>::iterator> bombersToRemoveByIt;
-        for (auto bomber : Bomber::bombers) {
-            if (bomber->exploded) {
-                bombersToRemoveByIt.push_back(std::find(Bomber::bombers.begin(), Bomber::bombers.end(), bomber));
-            }
-        }
-        for (auto it : bombersToRemoveByIt) {
-            Bomber::removeBomber(*it);
-        }
-        bombersToRemoveByIt.clear();
+        Bomber::bombers.erase(
+            std::remove_if(
+                Bomber::bombers.begin(),
+                Bomber::bombers.end(),
+                [](const std::shared_ptr<Bomber>& bomber) {
+                    if (!bomber) return true;
+                    if (bomber->exploded) {
+                        // Remove pawn from field before erasing
+                        field->erasePawn(bomber.get());
+                        return true;
+                    }
+                    return false;
+                }
+            ),
+            Bomber::bombers.end()
+        );
         for (unsigned j = 0; j < Bomber::bombers.size(); j++) {
             std::shared_ptr<Bomber> bomber = Bomber::bombers[j];
             if (bomber == nullptr) continue;
-            if (bomber->exploded) {
-                bombersToRemoveByIt.push_back(std::find(Bomber::bombers.begin(), Bomber::bombers.end(), bomber));
-                continue;
-            }
+            if (bomber->exploded) continue;
             bomber->move();
         }
-        for (auto it : bombersToRemoveByIt) {
-            Bomber::removeBomber(*it);
-        }
-        bombersToRemoveByIt.clear();
         // debug << "\tAfter bombers" << std::endl;
         try {
             Queen::queen->move();
