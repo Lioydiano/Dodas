@@ -74,11 +74,12 @@ If you don't want the music to be played, you must run `./dodas -M` or `./dodas 
 
 If you want the music to be played correctly, you may need some libraries, see this list:
 
-- Linux: [`canberra-gtk-play`](https://askubuntu.com/questions/1175572/how-to-fix-error-failed-to-load-module-canberra-gtk-module) which must be installed with `sudo apt-get install libcanberra-gtk-module`
+- Linux: [`ffplay`](https://askubuntu.com/a/316048/1559059) which comes with the [`ffmpeg`](https://www.tecmint.com/install-ffmpeg-in-linux/) package
+    - Falls back to [`aplay`](https://linux.die.net/man/1/aplay) if `ffplay` is not found
 - MacOS: [`afplay`](https://ss64.com/mac/afplay.html) which is included in the MacOS API
 - Windows: `PlaySound` from `winmm.dll` which is included in the Windows API
 
-Also, you must have the `audio` folder in the same directory as the `dodas` executable.
+Also, you must have the `audio` folder in the same directory from which you run the game. By default, the `audio` folder is included in the repository.
 
 - `-E` or `--endless` to run the game in endless mode
 

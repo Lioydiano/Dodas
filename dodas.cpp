@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
             sista::Attribute::BRIGHT
         }
     );
+    // Default settings
     bool unofficial = false;
     bool music = true;
     bool endless = false;
@@ -281,12 +282,19 @@ int main(int argc, char** argv) {
                 n = (rand() % genresSize_[genre]) + 1;
                 std::string track = ((std::string)"audio/") + genres[genre] + std::to_string(n) + (std::string)".ogg";
                 try {
-                    system(("canberra-gtk-play -f " + track).c_str());
+                    system(("ffplay -v 0 -nodisp -autoexit " + track).c_str());
                 } catch (std::exception& e) {
-                    #if DEBUG
-                    debug << e.what() << std::endl;
-                    #endif
-                    return; // If the music can't be played, the thread ends
+                    std::string track = genres[genre] + std::to_string(n);
+                    try {
+                        char buf[1024];
+                        snprintf(buf, 1024, "aplay \"audio/%s.wav\"", track.c_str());
+                        system(buf);
+                    } catch (std::exception& e) {
+                        #if DEBUG
+                        debug << e.what() << std::endl;
+                        #endif
+                        return; // If the music can't be played, the thread ends
+                    }
                 }
                 while (pause_) {
                     if (end) return;
