@@ -803,7 +803,7 @@ void tutorial() {
     std::cout << "\t- '\x1b[35mb\x1b[0m' to select \x1b[1mb\x1b[0mullets ('\x1b[35mB\x1b[0m' also works)\n";
     std::cout << "\t- '\x1b[35mm\x1b[0m' to select \x1b[1mm\x1b[0mines ('\x1b[35mM\x1b[0m' also works)\n";
     std::cout << "\t- '\x1b[35mc\x1b[0m' to select \x1b[1mc\x1b[0mannons ('\x1b[35mC\x1b[0m' also works)\n";
-    std::cout << "\t- '\x1b[35me\x1b[0m' to select \x1b[1me\x1b[0mxploding bombers ('\x1b[35mB\x1b[0m' also works)\n";
+    std::cout << "\t- '\x1b[35me\x1b[0m' to select \x1b[1me\x1b[0mxploding bombers ('\x1b[35mE\x1b[0m' also works)\n";
     std::cout << "\t- '\x1b[35mg\x1b[0m' to select workers, \x1b[1mg\x1b[0matherers ('\x1b[35mW\x1b[0m' and '\x1b[35mG\x1b[0m' also work)\n";
     std::cout << "\t- '\x1b[35mu\x1b[0m' to select \x1b[1mu\x1b[0mpgraded armed workers ('\x1b[35mU\x1b[0m' also works)\n";
     std::cout << "\t- '\x1b[35m=\x1b[0m' to select walls ('\x1b[35m0\x1b[0m' and '\x1b[35m#\x1b[0m' also work)\n\n";

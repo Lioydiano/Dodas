@@ -98,7 +98,6 @@ You are the red `$` symbol and you have to kill the `9` queen.
 The queen defends herself by spawning bold shooting `Z` zombies and walking `Z` zombies.
 
 The queen also spawns `=` walls to protect herself when hitten.
-
 You must kill the queen as fast as possible, because the zombies will keep spawning.
 
 ### Controls
@@ -115,7 +114,7 @@ You can select different "weapons" by pressing the following keys:
 - `b` to select **b**ullets (`B` also works)
 - `m` to select **m**ines (`M` also works)
 - `c` to select **c**annons (`C` also works)
-- `e` to select **e**xploding bombers (`B` also works)
+- `e` to select **e**xploding bombers (`E` also works)
 - `g` to select workers, **g**atherers (`W` and `G` also work)
 - `u` to select **u**pgraded armed workers (`U` also works)
 - `=` to select walls (`0` and `#` also work)
