@@ -14,8 +14,12 @@
 
 #define START_AMMONITION 10
 
+#define HEIGHT 20
+#define WIDTH 50
+
 #define DEBUG 0
 #define INTRO 1
+#define TUTORIAL 1
 #define SCAN_FOR_NULLPTRS 0
 #define VERSION "1.0.0-alpha.4"
 #define DATE "2025-08-27"
@@ -33,6 +37,7 @@
 #define REPOPULATE 127 // The number of frame before the whole sista::Field is emptied and repopulated
 
 void printIntro();
+void tutorial();
 
 enum Type {
     PLAYER,

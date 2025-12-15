@@ -116,6 +116,9 @@ int main(int argc, char** argv) {
         }
     }
     field->print(border);
+    #if TUTORIAL
+        tutorial();
+    #endif
     // std::this_thread::sleep_for(std::chrono::milliseconds(2000));    
     std::thread th = std::thread([&]() {
         char input = '_';
@@ -698,7 +701,7 @@ int main(int argc, char** argv) {
     }
     th.join();
     flushInput();
-    cursor.goTo(52, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
+    cursor.goTo(WIDTH + 2, 0); // Move the cursor to the bottom of the screen, so the terminal is not left in a weird state
     #ifdef __APPLE__
     tcsetattr(0, TCSANOW, &orig_termios);
     #endif
@@ -743,6 +746,84 @@ void printIntro() {
     sista::clearScreen();
 }
 
+void tutorial() {
+    char c;
+    #if defined(_WIN32) or defined(__linux__)
+        c = getch();
+    #elif __APPLE__
+        c = getchar();
+    #endif
+    if (c == 'Q') return;
+
+    cursor.goTo(HEIGHT + 5, 0);
+    std::cout << "\t\t\t\t\x1b[3mTutorial\x1b[0m\n";
+    std::cout << "\t\t\t\tQ to skip\n\n";
+
+    std::cout << "\tYou are the red \x1b[31m$\x1b[0m symbol and you have to kill the ";
+    Queen::queenStyle.apply();
+    std::cout << "9\x1b[0m queen to win.\n";
+    std::cout << "\tThe queen defends herself by spawning shooting ";
+    Zombie::zombieStyle.apply();
+    std::cout << "Z\x1b[0m zombies and walking ";
+    Walker::walkerStyle.apply();
+    std::cout << "Z\x1b[0m zombies.\n";
+    std::cout << "\tThe queen also spawns ";
+    Wall::wallStyle.apply();
+    std::cout << "=\x1b[0m walls to protect herself when hit.\n";
+    std::cout << "\tYou must kill the queen as fast as possible, because the zombies will keep spawning.\n\n";
+
+    std::flush(std::cout);
+    #if defined(_WIN32) or defined(__linux__)
+        c = getch();
+    #elif __APPLE__
+        c = getchar();
+    #endif
+    if (c == 'Q') return;
+
+    std::cout << "\tControls:\n";
+    std::cout << "\t- '\x1b[35mw\x1b[0m'/'\x1b[35ma\x1b[0m'/'\x1b[35ms\x1b[0m'/'\x1b[35md\x1b[0m' to move (up/left/down/right, uppercase '\x1b[35mA\x1b[0m'/'\x1b[35mS\x1b[0m'/'\x1b[35mD\x1b[0m' also work)\n";
+    std::cout << "\t- '\x1b[35mQ\x1b[0m' to quit (lowercase '\x1b[35mq\x1b[0m' won't work)\n";
+    std::cout << "\t- '\x1b[35mi\x1b[0m'/'\x1b[35mj\x1b[0m'/'\x1b[35mk\x1b[0m'/'\x1b[35ml\x1b[0m' to shoot and build (up/left/down/right)\n";
+    std::cout << "\t- '\x1b[35m.\x1b[0m' to pause and unpause the game\n\n";
+
+    std::flush(std::cout);
+    #if defined(_WIN32) or defined(__linux__)
+        c = getch();
+    #elif __APPLE__
+        c = getchar();
+    #endif
+    if (c == 'Q') return;
+
+    std::cout << "\tWeapons:\n";
+    std::cout << "\tYou can select different \"weapons\" by pressing the following keys:\n";
+    std::cout << "\t- '\x1b[35mb\x1b[0m' to select \x1b[1mb\x1b[0mullets ('\x1b[35mB\x1b[0m' also works)\n";
+    std::cout << "\t- '\x1b[35mm\x1b[0m' to select \x1b[1mm\x1b[0mines ('\x1b[35mM\x1b[0m' also works)\n";
+    std::cout << "\t- '\x1b[35mc\x1b[0m' to select \x1b[1mc\x1b[0mannons ('\x1b[35mC\x1b[0m' also works)\n";
+    std::cout << "\t- '\x1b[35me\x1b[0m' to select \x1b[1me\x1b[0mxploding bombers ('\x1b[35mB\x1b[0m' also works)\n";
+    std::cout << "\t- '\x1b[35mg\x1b[0m' to select workers, \x1b[1mg\x1b[0matherers ('\x1b[35mW\x1b[0m' and '\x1b[35mG\x1b[0m' also work)\n";
+    std::cout << "\t- '\x1b[35mu\x1b[0m' to select \x1b[1mu\x1b[0mpgraded armed workers ('\x1b[35mU\x1b[0m' also works)\n";
+    std::cout << "\t- '\x1b[35m=\x1b[0m' to select walls ('\x1b[35m0\x1b[0m' and '\x1b[35m#\x1b[0m' also work)\n\n";
+
+    std::flush(std::cout);
+    #if defined(_WIN32) or defined(__linux__)
+        c = getch();
+    #elif __APPLE__
+        c = getchar();
+    #endif
+    if (c == 'Q') return;
+
+    std::cout << "\tA \"weapon\" is not really a weapon, but rather an entity that you can place on the field.\n";
+    std::cout << "\tEach weapon has a different ammunition cost.\n\n";
+
+    std::cout << "\tRead more at https://github.com/Lioydiano/Dodas?tab=readme-ov-file#how-to-play\n\n";
+
+    std::flush(std::cout);
+    #if defined(_WIN32) or defined(__linux__)
+        getch();
+    #elif __APPLE__
+        getchar();
+    #endif
+}
 
 std::unordered_map<Direction, sista::Coordinates> directionMap = {
     {Direction::UP, {(unsigned short)-1, 0}},
