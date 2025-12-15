@@ -1390,9 +1390,14 @@ void ArmedWorker::dodgeIfNeeded() {
         return;
     if (field->isOccupied(target)) {
         if (((Entity*)field->getPawn(target))->type == Type::ENEMYBULLET) {
-            std::shared_ptr<Wall> newwall = std::make_shared<Wall>(this->coordinates + directionMap[Direction::RIGHT], 2);
-            Wall::walls.push_back(newwall);
-            field->addPrintPawn(newwall);
+            sista::Coordinates right = this->coordinates + directionMap[Direction::RIGHT];
+            if (field->isFree(right)) {
+                std::shared_ptr<Wall> newwall = std::make_shared<Wall>(right, 2);
+                Wall::walls.push_back(newwall);
+                field->addPrintPawn(newwall);
+            } else {
+                // If we can't place the wall, just give that up
+            }
 
             sista::Coordinates destination = this->coordinates + directionMap[Direction::UP];
             Direction moved = Direction::UP;
