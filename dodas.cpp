@@ -568,7 +568,9 @@ int main(int argc, char** argv) {
         if (i % 100 == 0) {
             unsigned short y = rand() % 20;
             if (Queen::queen->getCoordinates().y != y) {
-                std::shared_ptr<Walker> walker = std::make_shared<Walker>(sista::Coordinates{y, 49});
+                sista::Coordinates spawn{y, 49};
+                if (field->isOccupied(spawn)) continue;
+                std::shared_ptr<Walker> walker = std::make_shared<Walker>(spawn);
                 Walker::walkers.push_back(walker);
                 field->addPrintPawn(walker);
             }
@@ -576,7 +578,9 @@ int main(int argc, char** argv) {
         if (i % 200 == 0) {
             unsigned short y = rand() % 20;
             if (Queen::queen->getCoordinates().y != y) {
-                std::shared_ptr<Zombie> zombie = std::make_shared<Zombie>(sista::Coordinates{y, 49});
+                sista::Coordinates spawn{y, 49};
+                if (field->isOccupied(spawn)) continue;
+                std::shared_ptr<Zombie> zombie = std::make_shared<Zombie>(spawn);
                 Zombie::zombies.push_back(zombie);
                 field->addPrintPawn(zombie);
             }
