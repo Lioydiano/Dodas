@@ -21,8 +21,8 @@
 #define INTRO 1
 #define TUTORIAL 1
 #define SCAN_FOR_NULLPTRS 0
-#define VERSION "1.0.0-alpha.6"
-#define DATE "2025-12-15"
+#define VERSION "1.0.0-alpha.7"
+#define DATE "2025-12-16"
 
 #if DEBUG
     #undef START_AMMONITION
