@@ -89,30 +89,30 @@ int main(int argc, char** argv) {
     }
 
     Player::player = std::make_shared<Player>(sista::Coordinates{10, 18});
-    field->addPrintPawn(Player::player);
+    field->addPawn(Player::player);
     Queen::queen = std::make_shared<Queen>(sista::Coordinates{10, 49});
-    field->addPrintPawn(Queen::queen);
+    field->addPawn(Queen::queen);
     for (unsigned short j=0; j<20; j++) {
         std::shared_ptr<Wall> wall = std::make_shared<Wall>(sista::Coordinates{j, 30}, 3); // There is a vertical macrowall in the middle of the field
         Wall::walls.push_back(wall);
-        field->addPrintPawn(wall);
+        field->addPawn(wall);
         if (j % 5 == 1) {
             // Zombies are spawned on the right side of the field (the mother side)
             std::shared_ptr<Zombie> zombie = std::make_shared<Zombie>(sista::Coordinates{j, 47});
             Zombie::zombies.push_back(zombie);
-            field->addPrintPawn(zombie);
+            field->addPawn(zombie);
         }
         if (j % 5 == 3) {
             // Walkers are spawned on the right side of the field (the mother side)
             std::shared_ptr<Walker> walker = std::make_shared<Walker>(sista::Coordinates{j, 45});
             Walker::walkers.push_back(walker);
-            field->addPrintPawn(walker);
+            field->addPawn(walker);
         }
         if (j % 5 == 2) {
             // Workers are spawned on the left side of the field (the player side)
             std::shared_ptr<Worker> worker = std::make_shared<Worker>(sista::Coordinates{j, 1});
             Worker::workers.push_back(worker);
-            field->addPrintPawn(worker);
+            field->addPawn(worker);
         }
     }
     field->print(border);
