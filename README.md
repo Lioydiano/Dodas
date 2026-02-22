@@ -198,6 +198,7 @@ Despite not being intelligent in any way, her movements are unpredictable.
 - `v0.4` record: `2102` by FLAK-ZOSO
 - `v0.5` record: `1903` by Francesco Corradin
 - `v0.6` record: `1924` by FLAK-ZOSO
+- `v0.7` record: `1748` by FLAK-ZOSO
 
 # Screenshots
 
